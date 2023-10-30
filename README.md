@@ -113,17 +113,17 @@ PIP *(Python Original Distribution)*:
 
 1. Make sure you're in `./API` directory
 
-1. `python3 -m venv blackjack-VENV`
+2. `python3 -m venv blackjack-VENV`
 
-2. 
-LINUX: `source blackjack-VENV/bin/activate`
-WINDOWS: `& .\blackjack-VENV\Scripts\Activate.ps1` *(Untested)*
+3. 
+- LINUX: `source blackjack-VENV/bin/activate`
+- WINDOWS: `& .\blackjack-VENV\Scripts\Activate.ps1` *(Untested)*
 
-3. `pip install fastapi uvicorn mysql-connector-python`
+4. `pip install fastapi uvicorn mysql-connector-python`
 
-4. Make sure essential API packages are installed 
+5. Make sure essential API packages are installed 
 LINUX ONLY: `pip list | grep -E "uvicorn|fastapi|mysql-connector-python"`
 
 **When you want to close the VENV**
 
-5. Use `deactivate` to de-activate PIP VENV
+6. Use `deactivate` to de-activate PIP VENV
