@@ -28,3 +28,10 @@ TODO:
 ---
 
 *Database Schema Setup:*
+
+```sql
+CREATE DATABASE blackjack_replay;
+USE blackjack_replay;
+
+
+```
