@@ -27,7 +27,7 @@ TODO:
 
 ---
 
-*Database Schema Setup:*
+### *Database Schema Setup:*
 
 ```sql
 CREATE DATABASE blackjack_replay
@@ -90,3 +90,40 @@ CREATE TABLE active_hands (
 );
 
 ```
+
+---
+
+### *Python FastAPI Setup*
+
+Anaconda Install, which is a Python Distribution and Package Management Tool *(Easier for those on Windows IMO)*
+
+1. `conda create --name blackjack-API`
+
+2. `conda activate blackjack-API`
+
+3. `conda install fastapi uvicorn mysql-connector-python`
+
+**When you want to close the VENV**
+
+4. Use `conda deactivate` to de-activate Conda VENV
+
+---
+
+PIP *(Python Original Distribution)*:
+
+1. Make sure you're in `./API` directory
+
+1. `python3 -m venv blackjack-VENV`
+
+2. 
+LINUX: `source blackjack-VENV/bin/activate`
+WINDOWS: `& .\blackjack-VENV\Scripts\Activate.ps1` *(Untested)*
+
+3. `pip install fastapi uvicorn mysql-connector-python`
+
+4. Make sure essential API packages are installed 
+LINUX ONLY: `pip list | grep -E "uvicorn|fastapi|mysql-connector-python"`
+
+**When you want to close the VENV**
+
+5. Use `deactivate` to de-activate PIP VENV
