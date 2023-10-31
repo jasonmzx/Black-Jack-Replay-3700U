@@ -29,8 +29,9 @@ TODO:
 
 ### *Database Schema Setup:*
 
+`CREATE DATABASE blackjack_replay;`
+
 ```sql
-CREATE DATABASE blackjack_replay;
 USE blackjack_replay;
 
 CREATE TABLE users (
@@ -47,11 +48,11 @@ CREATE TABLE card_registry (
 	# 0: Club, 1: Diamonds, 2: Hearts, 3: Spades
 	symbol_value TINYINT NOT NULL CHECK (symbol_value BETWEEN 0 AND 3),
 	
-	# 0: Number-Card (1-10) , 1: Face-Card (J/K/Q) , 2: Ace 
-	card_type TINYINT NOT NULL CHECK (card_type BETWEEN 0 AND 2),
+	# 0: Number-Card (1-10) , 1,2,3: Face-Card (J/Q/K respectively) , 4: Ace 
+	card_type TINYINT NOT NULL CHECK (card_type BETWEEN 0 AND 4),
 	
-	# Value of the Card, NULL for Ace, as it can be 1 or 11 
-    card_value TINYINT CHECK (card_value BETWEEN 1 AND 10),
+	# Value of the Card, NULL for Ace (as it can be value 1 or 11)
+    card_value TINYINT CHECK (card_value BETWEEN 2 AND 10),
 	
 	PRIMARY KEY (card_id)
 );
@@ -79,12 +80,11 @@ CREATE TABLE game_decks (
 );
 
 CREATE TABLE active_hands (
-	holder INT, # Either a Player ID, or NULL for Dealer
 	game_id INT NOT NULL,
 	card_id INT NOT NULL, 
 	shown BIT, # Acts as a boolean (0 or 1)
+	holder BIT, 
 	
-	FOREIGN KEY(holder) REFERENCES users(user_id),
 	FOREIGN KEY(game_id) REFERENCES games(game_id),
 	FOREIGN KEY(card_id) REFERENCES card_registry(card_id)
 );
