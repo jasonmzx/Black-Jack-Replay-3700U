@@ -30,8 +30,8 @@ TODO:
 ### *Database Schema Setup:*
 
 ```sql
-CREATE DATABASE blackjack_replay
-USE blackjack_replay
+CREATE DATABASE blackjack_replay;
+USE blackjack_replay;
 
 CREATE TABLE users (
 	user_id INT NOT NULL AUTO_INCREMENT,
@@ -127,3 +127,9 @@ LINUX ONLY: `pip list | grep -E "uvicorn|fastapi|mysql-connector-python"`
 **When you want to close the VENV**
 
 6. Use `deactivate` to de-activate PIP VENV
+
+---
+
+Running API
+
+`uvicorn main:app --reload`
