@@ -8,10 +8,6 @@ import hashlib
 
 router = APIRouter()
 
-@router.get("/test")
-def gameInfo():
-    return {"hej" : "blat"}
-
 @router.post("/signup")
 def signup(req: SignUpForm):
     conn = connection_pool.get_conn()
@@ -32,7 +28,7 @@ def signup(req: SignUpForm):
         results = cursor.fetchall()
         print(results)
 
-    except mysql.connector.Error as err:
+    except Exception as err:
         print(f"Error: {err}")
         return {"Error": str(err)}
     finally:
@@ -42,3 +38,28 @@ def signup(req: SignUpForm):
     return {"OK!" : req.username}
 
 
+
+@router.post("/login")
+def login(req: LoginForm):
+    conn = connection_pool.get_conn()
+    cursor = conn.cursor(dictionary=True)
+
+    plaintext_password = req.plaintext_password
+    hashed_password = hashlib.sha256(plaintext_password.encode()).hexdigest()
+
+    try:
+
+        sql = ("SELECT * FROM users WHERE password_hash = %s ")
+        val = (hashed_password,) # Val needs to be a tuple, that's a minimum of 2 values (hence the extra comma)
+        cursor.execute(sql,val)
+        
+        results = cursor.fetchall()
+        print(results)
+    except Exception as err:
+        print(f"Error: {err}")
+        return {"Error": str(err)}
+    finally:
+        cursor.close()
+        conn.close()
+
+    return {"OK!" : req.username}

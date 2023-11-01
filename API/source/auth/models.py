@@ -8,3 +8,5 @@ class SignUpForm(BaseModel):
 class LoginForm(BaseModel):
     username: str
     plaintext_password: str
+
+
