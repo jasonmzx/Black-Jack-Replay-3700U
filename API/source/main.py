@@ -1,15 +1,16 @@
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import APIRouter
 
+from auth.endpoints import router as auth_router
+from game.endpoints import router as game_router
+
+#DB Import
 from database import connection_pool
 
 app = FastAPI()
 
-class Item(BaseModel):
-    name: str
-    description: str = None
-    price: float
-    tax: float = None
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
+app.include_router(game_router, prefix="/game", tags=["game"])
 
 @app.get("/data/")
 def get_data():
@@ -24,17 +25,3 @@ def get_data():
 
     return results
 
-@app.get("/")
-def read_root():
-    return {"Hello": "World"}
-
-@app.get("/items/{item_id}")
-def read_item(item_id: int, query_param: str = None):
-    return {"item_id": item_id, "query_param": query_param}
-
-@app.post("/items/")
-def create_item(item: Item):
-    return item
-
-# To run the app:
-# uvicorn main:app --reload
