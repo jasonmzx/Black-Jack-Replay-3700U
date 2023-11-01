@@ -2,7 +2,7 @@
 - Note, most of these scripts are also being used directly within Python, as Prepared SQL Statements
 
 
-#### Script #1 | Creation of all Tables
+### Script #1 | Creation of all Tables
 
 **Purpose**: Creation of all tables in the database *(To be done upon setup of DB Application)*
 
@@ -18,18 +18,39 @@ CREATE TABLE users (
 	PRIMARY KEY (user_id)
 );
 
+
+-- Creation of ENUMS need to be created before `card_registry` as it has FK referrences to Type & Symbol ENUMs (so far)
+
+CREATE TABLE ENUM_card_type (
+    card_type TINYINT NOT NULL CHECK (card_type BETWEEN 0 AND 4),
+    card_name VARCHAR(20),
+
+    PRIMARY KEY (card_type)
+);
+
+CREATE TABLE ENUM_symbol_type (
+    symbol_type TINYINT NOT NULL CHECK (symbol_type BETWEEN 0 AND 3),
+    symbol_name VARCHAR(20),
+
+    PRIMARY KEY (symbol_type)
+);
+
 CREATE TABLE card_registry (
-	card_id INT NOT NULL AUTO_INCREMENT,
+    -- PK
+    card_id INT NOT NULL AUTO_INCREMENT,
 	
 	-- 0: Club, 1: Diamonds, 2: Hearts, 3: Spades
-	symbol_value TINYINT NOT NULL CHECK (symbol_value BETWEEN 0 AND 3),
-	
+	symbol_type TINYINT NOT NULL,
+
 	-- 0: Number-Card (1-10) , 1,2,3: Face-Card (J/Q/K respectively) , 4: Ace 
-	card_type TINYINT NOT NULL CHECK (card_type BETWEEN 0 AND 4),
+	card_type TINYINT NOT NULL,
 	
 	-- Value of the Card, NULL for Ace (as it can be value 1 or 11)
     card_value TINYINT CHECK (card_value BETWEEN 2 AND 10),
 	
+
+    FOREIGN KEY (card_type) REFERENCES ENUM_card_type(card_type),
+    FOREIGN KEY (symbol_type) REFERENCES ENUM_symbol_type(symbol_type),
 	PRIMARY KEY (card_id)
 );
 
@@ -64,11 +85,33 @@ CREATE TABLE active_hands (
 	FOREIGN KEY(game_id) REFERENCES games(game_id),
 	FOREIGN KEY(card_id) REFERENCES card_registry(card_id)
 );
+
+
+
+-- ENUM Insertions, Just a pre-liminary load-in of enums upon Running this script
+-- Optional TODO: integrate into py database module, maybe do a class, with Init() on constructor that atleast does an IF EXISTS check or somnt
+
+INSERT INTO ENUM_card_type (card_type, card_name) VALUES
+(0, ""), -- Number card prefix
+(1, "Jack"),
+(2, "Queen"),
+(3, "King"),
+(4, "Ace");
+
+
+INSERT INTO ENUM_symbol_type (symbol_type, symbol_name) VALUES
+(0, "Clubs"), 
+(1, "Diamonds"),
+(2, "Hearts"),
+(3, "Spades");
+
+
 ```
+
 
 ---
 
-#### Script #2 | Deletion of all Tables
+### Script #2 | Deletion of all Tables
 
 
 **Purpose**: Deletion of all tables, incase we've re-factored the schema, and we need to refresh our tables. *(More generic than ALTER)*
@@ -87,13 +130,18 @@ DROP TABLE IF EXISTS games;
 DROP TABLE IF EXISTS card_registry;
 DROP TABLE IF EXISTS users;
 
+-- Drop ENUM Tables
+
+DROP TABLE IF EXISTS ENUM_card_type;
+DROP TABLE IF EXISTS ENUM_symbol_type;
+
 -- Re-enable foreign key checks
 SET foreign_key_checks = 1;
 ```
 
 ---
 
-#### Script #2 | Generation of Card Registry
+### Script #2 | Generation of Card Registry
 
 **Purpose**: Generation of 52 cards into `card_registry` *(This will usually be done as a setup step for Application)*
 
@@ -115,3 +163,6 @@ VALUES
 (2, 2, NULL), -- Hearts Ace
 (3, 2, NULL); -- Spades Ace
 ```
+
+---
+
