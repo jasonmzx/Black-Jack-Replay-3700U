@@ -194,10 +194,10 @@ VALUES
 (1, 1, 10), (1, 2, 10), (1, 3, 10), -- Diamonds | Jack, Queen, King
 (2, 1, 10), (2, 2, 10), (2, 3, 10), -- Hearts | Jack, Queen, King
 (3, 1, 10), (3, 2, 10), (3, 3, 10), -- Spades | Jack, Queen, King
-(0, 2, NULL), -- Clubs Ace
-(1, 2, NULL), -- Diamonds Ace
-(2, 2, NULL), -- Hearts Ace
-(3, 2, NULL); -- Spades Ace
+(0, 4, NULL), -- Clubs Ace
+(1, 4, NULL), -- Diamonds Ace
+(2, 4, NULL), -- Hearts Ace
+(3, 4, NULL); -- Spades Ace
 ```
 
 ---
