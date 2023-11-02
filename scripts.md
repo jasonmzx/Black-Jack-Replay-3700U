@@ -14,6 +14,10 @@ CREATE TABLE users (
 	user_id INT NOT NULL AUTO_INCREMENT,
 	username VARCHAR(20) NOT NULL, 
 	balance BIGINT,
+
+    -- High Security Attributes
+    active_cookie VARCHAR(255),
+    password_hash VARCHAR(128) NOT NULL,
 	
 	PRIMARY KEY (user_id)
 );
@@ -54,8 +58,8 @@ CREATE TABLE card_registry (
 	PRIMARY KEY (card_id)
 );
 
-CREATE TABLE games (
-	game_id INT NOT NULL,
+CREATE TABLE active_games (
+	game_id INT NOT NULL AUTO_INCREMENT,
 	state INT,
 	player INT NOT NULL,
 	player_wager BIGINT NOT NULL,
@@ -73,7 +77,7 @@ CREATE TABLE game_decks (
 	card_id INT NOT NULL,
 	
 	FOREIGN KEY (card_id) REFERENCES card_registry(card_id),
-	FOREIGN KEY (game_id) REFERENCES games(game_id)
+	FOREIGN KEY (game_id) REFERENCES active_games(game_id)
 );
 
 CREATE TABLE active_hands (
@@ -82,10 +86,39 @@ CREATE TABLE active_hands (
 	shown BIT, -- Acts as a boolean (0 or 1)
 	holder BIT, 
 	
-	FOREIGN KEY(game_id) REFERENCES games(game_id),
+	FOREIGN KEY(game_id) REFERENCES active_games(game_id),
 	FOREIGN KEY(card_id) REFERENCES card_registry(card_id)
 );
 
+-- Replay Games & Hands
+
+
+CREATE TABLE replay_games (
+	r_game_id INT NOT NULL AUTO_INCREMENT,
+	state INT,
+	player INT NOT NULL,
+	player_wager BIGINT NOT NULL,
+	game_end_date DATE,
+	
+	PRIMARY KEY (r_game_id),
+	FOREIGN KEY (player) REFERENCES users(user_id)
+	
+);
+
+CREATE TABLE replay_hands (
+	-- This represents an action ID, 
+	-- And it's sequential, so I know what hands are in which order...
+	game_step BIGINT NOT NULL AUTO_INCREMENT, 
+
+	r_game_id INT NOT NULL,
+	card_id INT NOT NULL, 
+	shown BIT, -- Acts as a boolean (0 or 1)
+	holder BIT, 
+
+	PRIMARY KEY (game_step),
+	FOREIGN KEY(r_game_id) REFERENCES replay_games(r_game_id),
+	FOREIGN KEY(card_id) REFERENCES card_registry(card_id)
+);
 
 
 -- ENUM Insertions, Just a pre-liminary load-in of enums upon Running this script
@@ -125,10 +158,13 @@ SET foreign_key_checks = 0;
 
 -- Drop tables
 DROP TABLE IF EXISTS active_hands;
+DROP TABLE IF EXISTS active_games;
 DROP TABLE IF EXISTS game_decks;
-DROP TABLE IF EXISTS games;
 DROP TABLE IF EXISTS card_registry;
 DROP TABLE IF EXISTS users;
+
+DROP TABLE IF EXISTS replay_hands;
+DROP TABLE IF EXISTS replay_games;
 
 -- Drop ENUM Tables
 
@@ -148,7 +184,7 @@ SET foreign_key_checks = 1;
 **Script**:
 
 ```sql
-INSERT INTO card_registry (symbol_value, card_type, card_value)
+INSERT INTO card_registry (symbol_type, card_type, card_value)
 VALUES 
 (0, 0, 2), (0, 0, 3), (0, 0, 4), (0, 0, 5), (0, 0, 6), (0, 0, 7), (0, 0, 8), (0, 0, 9), (0, 0, 10), -- Clubs cards 2-10
 (1, 0, 2), (1, 0, 3), (1, 0, 4), (1, 0, 5), (1, 0, 6), (1, 0, 7), (1, 0, 8), (1, 0, 9), (1, 0, 10), -- Diamonds cards 2-10 
