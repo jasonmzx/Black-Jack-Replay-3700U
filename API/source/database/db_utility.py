@@ -18,3 +18,5 @@ def DB_get_user_by_cookie(cookie: str):
     except Exception as err:
         print(f"Error: {err}")
         raise err
+
+
