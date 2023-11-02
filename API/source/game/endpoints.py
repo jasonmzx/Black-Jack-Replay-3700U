@@ -5,6 +5,7 @@ from database import connection_pool
 from .models import InitGame
 
 from database.db_utility import DB_get_user_by_cookie
+from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand
 
 router = APIRouter()
 
@@ -45,11 +46,11 @@ def init_game(req: InitGame):
 
             #*---------- 1) Initialize game ----------
 
-            sql = "INSERT INTO games (state, player, player_wager) VALUES (%s, %s, %s)"
+            sql = "INSERT INTO active_games (state, player, player_wager) VALUES (%s, %s, %s)"
             val = (-1, user_record["user_id"], req.wager)
             cursor.execute(sql, val)
 
-            game_id = cursor.lastrowid #note: This `lastrowid` only works if the key is AUTO-INCR
+            game_id = cursor.lastrowid #note: This `lastrowid` only works if the P. key is AUTO-INCR
             print("GAME _ID "+str(game_id))
 
             #*---------- 2) Insert cards from `card_registry` in a shuffle manner ----------
@@ -62,14 +63,28 @@ def init_game(req: InitGame):
             for deck_position, card_id in enumerate(card_ids, 1):
                 val = (game_id, deck_position, card_id)
                 cursor.execute(game_deck_insert, val)
+
             
-            #*---------- 3) x ----------
+            conn.commit()
 
+            #? Transaction needs to be commit, as we need a deck to pull from...
 
-            conn.commit() #Commit Transaction
+            #*---------- 3) Pulling of cards off the top of the deck (Into Player's and Dealer's hands) ----------
 
+            drawn_cards = []
 
-            # Now select the game you just inserted, as I want to know the auto-incr primary key (game_id)
+            # Give player (0) 2 cards, that are shown
+
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 0, 1))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 0, 1))
+
+            # Give dealer (1) 2 Cards, 1 shown, 1 hidden
+
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 1, 1))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 1, 0))
+
+            print("Cards have been drawn...")
+            return {"drawn_cards" : drawn_cards}    
 
     except Exception as err:  # Catch all other errors
         print(f"Error: {err}")
