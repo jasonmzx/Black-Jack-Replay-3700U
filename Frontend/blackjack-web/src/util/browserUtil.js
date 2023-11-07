@@ -21,14 +21,3 @@ export function findCookie(cookieName, cookies) {
     }
 
 }
-
-//* #### Check if User has Authentication Cookie (BOOLEAN RESPONSE)
-
-export function cookieAuthCheck (domCookie, boolResponse) {
-
-    if( findCookie('access_token', domCookie) || findCookie('token_type', domCookie) ){
-        return boolResponse ? 1 : findCookie('access_token', domCookie);
-    } else {
-        return boolResponse ? 0 : null;
-    }
-}

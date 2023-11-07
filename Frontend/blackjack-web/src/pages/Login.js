@@ -9,7 +9,7 @@ import Footer from '../components/Footer'
 import Navbar from '../components/Navbar'
 
 //* Local stuff
-import { cookieAuthCheck } from '../util/browserUtil';
+import { findCookie } from '../util/browserUtil';
 import { API_LogUserIn } from '../util/API';
 
 const Login = () => {
@@ -17,6 +17,9 @@ const Login = () => {
     //* Cookie Object:
     const cookies = new Cookies();
     
+    //* React State for Dynamic JSX elements
+    const [errorMsg,SetErrorMsg] = React.useState(<></>);
+
     //Ref strings:
     const usernameStr = React.useRef('');
     const passwordStr = React.useRef('');  
@@ -25,6 +28,16 @@ const Login = () => {
  const LogInCallback = (resp, status) => {
     console.log(status);
     console.log(resp);
+
+    if(status === 200){
+        cookies.set('tk', resp.cookie);
+        window.location.href = "/"; //Redirect to dashboard;
+        return;
+    }
+
+    if(status === 401) {
+        SetErrorMsg(<p>Access Denied...</p>)
+    }
  }
 
   const LogInHandle = () => {
@@ -36,6 +49,28 @@ const Login = () => {
 
     API_LogUserIn(u,p,LogInCallback);
   }  
+
+
+  //* ========== ========== ========== ========== ==========
+  //* >> REACT USE EFFECTS
+  //* ========== ========== ========== ========== ==========
+
+  React.useEffect(() => {
+
+    const foundCookie = findCookie("tk", document.cookie);
+    console.log(foundCookie)
+
+    if(foundCookie != undefined) { //Somekind of cookie found,
+        window.location.href = "/logout";
+    }
+  }, []); //! ON MOUNT
+
+
+
+  //* ========== ========== ========== ========== ==========
+  //* >> Return Statement
+  //* ========== ========== ========== ========== ==========
+
 
   return (
     <>
@@ -55,6 +90,7 @@ const Login = () => {
                         <label class="form-check-label" for="checkbox">Remember me</label></div>
                     </div>
                     <button class="btn btn-primary" onClick={() => {LogInHandle()}}>Log In</button> 
+                    <p>{errorMsg}</p>
                 </div>
             </div>
         </section>
