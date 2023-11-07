@@ -5,7 +5,27 @@ import cardFront from "../static/img/card_sample.png";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
+//* Redux Integration
+
+// Redux :
+import { useSelector, useDispatch } from 'react-redux';
+import { edit_key } from '../redux/features/gameSlice.js';
 const Game = () => {
+
+  //* ######### Redux #########:
+  const courseLog_RDX = useSelector((state) => state.game.currentLog);
+
+  const dispatch = useDispatch();
+
+//   const reduxSetParameter = (parameterStr, payload) => { //& PARAMETER RE-ASSIGNMENT
+
+//     dispatch(setParameter({
+//         parameter : parameterStr,
+//         payload : payload
+//     }));
+
+// }
+
   return (
 <body>
 <Navbar/>
