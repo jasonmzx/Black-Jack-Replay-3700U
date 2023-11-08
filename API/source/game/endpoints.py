@@ -2,11 +2,10 @@ from fastapi import APIRouter, HTTPException
 import random
 
 from database import connection_pool
-from .models import InitGame
+from .models import InitGame, Credential
 
 from database.db_utility import DB_get_user_by_cookie
-from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand
-from database.db_utility import DB_GAME_Is_player_in_game
+from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
 
 router = APIRouter()
 
@@ -101,4 +100,18 @@ def init_game(req: InitGame):
 
     return {"OK" : 200}
     #Get player in question
+
+@router.post("/whoami")
+def whoami(req: Credential):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    return user_record
+
+        
 

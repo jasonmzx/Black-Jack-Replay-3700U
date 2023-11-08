@@ -1,20 +1,15 @@
 import React from 'react'
 
-import cardBack from "../static/img/card_back.jpg";
-import cardFront from "../static/img/card_sample.png";
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
-
-//* Redux Integration
-
-//* Redux :
-import { useSelector, useDispatch } from 'react-redux';
-import { edit_key } from '../redux/features/gameSlice.js';
 import CardRender from '../components/CardRender';
 
+//* Redux Integration
+import { useSelector, useDispatch } from 'react-redux';
+import { edit_key } from '../redux/features/gameSlice.js';
+import { findCookie } from '../util/browserUtil';
 
 //* API Endpoints
-
 import { API_Initialize_game } from '../util/API';
 
 
@@ -71,7 +66,7 @@ const RenderHand = () => {
     const foundCookie = findCookie("tk", document.cookie);
     console.log(foundCookie)
 
-    API_Initialize_game(foundCookie, 100);
+    API_Initialize_game(foundCookie, 100, ()=>{});
 
   }, []); //! ON MOUNT
 

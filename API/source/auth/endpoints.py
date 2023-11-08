@@ -54,7 +54,6 @@ def login(req: LoginForm):
 
     try:
         #* With closes connection pool automatically!
-
         with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
 
             # Find the user by username and password hash.

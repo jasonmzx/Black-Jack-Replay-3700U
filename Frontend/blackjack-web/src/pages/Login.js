@@ -61,7 +61,7 @@ const Login = () => {
     console.log(foundCookie)
 
     if(foundCookie != undefined) { //Somekind of cookie found,
-        window.location.href = "/logout";
+        window.location.href = "/";
     }
   }, []); //! ON MOUNT
 

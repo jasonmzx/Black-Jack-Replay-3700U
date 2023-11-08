@@ -35,7 +35,7 @@ const Dashboard = () => {
                 <div className="block-heading">
                     <h2 className="text-info">Blackjack Dashboard</h2>
                     <p>Welcome back, </p>
-                    <button className="btn btn-primary">Let's play some Blackjack!</button>
+                    <a className="btn btn-primary" href="/game/create">Let's play some Blackjack!</a>
                 </div>
                 <div className="block-content">
                     <div className="text-start clean-blog-post">
