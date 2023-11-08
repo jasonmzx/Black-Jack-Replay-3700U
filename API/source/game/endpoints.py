@@ -6,6 +6,7 @@ from .models import InitGame
 
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand
+from database.db_utility import DB_GAME_Is_player_in_game
 
 router = APIRouter()
 
@@ -29,13 +30,17 @@ def init_game(req: InitGame):
     if(user_record is None):
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
+    #*** Check if a Player's already in a game:
+
+    if DB_GAME_Is_player_in_game(user_record["user_id"]) is True:
+        raise HTTPException(status_code=400, detail="You're already in a game!")
+
     #TODO: Wager check & assertions...  req.wager
     #- check if wager is greater than minimum bet amount
     #- check if player has enough money to bet can pull from `user_record` var
 
 
-    #*** At this point, we've confirmed a user is logged in, and their wager is valid
-
+    #*** At this point, we've confirmed a user is logged in, and their wager is valid, and they AREN'T in any games
     
     try:
         #* With closes connection pool automatically!
@@ -97,4 +102,3 @@ def init_game(req: InitGame):
     return {"OK" : 200}
     #Get player in question
 
-    

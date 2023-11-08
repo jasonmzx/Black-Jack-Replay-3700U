@@ -64,3 +64,33 @@ def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, holder: bool, show
             raise err
 
     return pulled_card
+
+def DB_GAME_Is_player_in_game(player_id: int):
+
+    active_game = None
+
+    # With closes connection pool and cursor automatically!
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+        
+        # Begin transaction
+        conn.start_transaction()
+
+        try:
+            # Find the record by game_id and order by deck_position.
+            stmt = "SELECT * FROM active_games WHERE player = %s LIMIT 1"
+            val = (player_id,)  
+            cursor.execute(stmt, val)
+
+            active_game = cursor.fetchone()
+            
+            if active_game is None:
+                return False
+
+            return True #If it gets here, active_game isn't false, so Player is in a game
+            conn.commit()
+
+        except Exception as err:
+            # For any other exceptions, still roll back the transaction
+            conn.rollback()
+            print(f"Error: {err}")
+            raise err
