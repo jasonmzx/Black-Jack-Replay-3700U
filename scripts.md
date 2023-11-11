@@ -204,3 +204,22 @@ VALUES
 
 ---
 
+
+## Script #3 | Truncation of all games
+
+```sql
+USE blackjack_replay;
+
+-- Disable foreign key constraints
+SET foreign_key_checks = 0;
+
+-- Truncate tables
+TRUNCATE TABLE active_games;
+TRUNCATE TABLE replay_games;
+TRUNCATE TABLE active_hands;
+TRUNCATE TABLE replay_hands;
+TRUNCATE TABLE game_decks;
+
+-- Re-enable foreign key constraints
+SET foreign_key_checks = 1;
+```

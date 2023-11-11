@@ -27,7 +27,10 @@ def init_game(req: InitGame):
 
     #*** Check if a Player's already in a game:
 
-    if DB_GAME_Is_player_in_game(user_record["user_id"]) is not None:
+    in_game = DB_GAME_Is_player_in_game(user_record["user_id"])
+    print("### INGAME: "+str(in_game))
+
+    if in_game is not False:
 
         DB_GAME_get_active_hands(user_record["user_id"])
 
@@ -56,9 +59,15 @@ def init_game(req: InitGame):
             cursor.execute(sql, val)
 
             game_id = cursor.lastrowid #note: This `lastrowid` only works if the P. key is AUTO-INCR
-            print("GAME _ID "+str(game_id))
+            print(">> GAME _ID "+str(game_id))
 
-            #*---------- 2) Insert cards from `card_registry` in a shuffle manner ----------
+            #*---------- 2) Initialize Replay game ----------
+
+            sql = "INSERT INTO replay_games (r_game_uuid, state, player, player_wager) VALUES (%s, %s, %s, %s)"
+            val = (game_uuid, None, user_record["user_id"], req.wager)
+            cursor.execute(sql, val)
+
+            #*---------- 3) Insert cards from `card_registry` in a shuffle manner ----------
 
             card_ids = list(range(1,53))
             random.shuffle(card_ids)
@@ -80,13 +89,13 @@ def init_game(req: InitGame):
 
             # Give player (0) 2 cards, that are shown
 
-            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 0, 1))
-            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 0, 1))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
 
             # Give dealer (1) 2 Cards, 1 shown, 1 hidden
 
-            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 1, 1))
-            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, 1, 0))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 1))
+            drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 0))
 
             print("Cards have been drawn...")
             return {"drawn_cards" : drawn_cards}    

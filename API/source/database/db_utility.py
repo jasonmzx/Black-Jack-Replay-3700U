@@ -1,4 +1,5 @@
 from . import connection_pool
+from .db_utility_helper import obfuscate_active_hands
 
 def DB_get_user_by_cookie(cookie: str):
     try:
@@ -24,7 +25,7 @@ def DB_get_user_by_cookie(cookie: str):
 
 
 #? I apologize in advanced for the Java-esque function names lol
-def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, holder: bool, shown: bool):
+def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, game_uuid: str, holder: bool, shown: bool):
     
     pulled_card = None
 
@@ -57,6 +58,17 @@ def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, holder: bool, show
             stmt = "INSERT active_hands (game_id, card_id, shown, holder) VALUES (%s, %s, %s, %s)"
             val = (game_id, pulled_card['card_id'], bool(shown), bool(holder))
             cursor.execute(stmt,val)
+
+
+            #* lookup replay tbl
+            stmt = "SELECT * FROM replay_games WHERE r_game_uuid = %s LIMIT 1"
+            val = (game_uuid,)  
+            cursor.execute(stmt, val)
+
+            replay_game = cursor.fetchone()
+
+            print("####### Replay Game ##########")
+            print(replay_game)
 
             conn.commit()
 
@@ -114,23 +126,26 @@ def DB_GAME_get_active_hands(player_id: int):
         conn.start_transaction()
 
         try:
-            #* Large Inner Join query, to essentially go from active_hands having a "card_id" to fleshed out card descriptions
+            #* Large Inner Join query, to go from active_hands' card ref of "card_id" to more fleshed out card description (per card)
             stmt = """
-SELECT ah.game_id, ah.card_id, ah.shown, ah.holder, 
+SELECT ah.card_id, ah.shown, ah.holder, 
        cr.symbol_type, est.symbol_name, 
        cr.card_type, ect.card_name, 
-       cr.card_value
+       cr.card_value, ag.game_uuid
 FROM active_hands ah
 INNER JOIN card_registry cr ON ah.card_id = cr.card_id
 INNER JOIN ENUM_card_type ect ON cr.card_type = ect.card_type
 INNER JOIN ENUM_symbol_type est ON cr.symbol_type = est.symbol_type
+INNER JOIN active_games ag ON ah.game_id = ag.game_id
 WHERE ah.game_id = %s
             """
             val = (game_id,)  
             cursor.execute(stmt, val)
 
             active_hands = cursor.fetchall()
-            print(active_hands)            
+            obfuscated_hands = obfuscate_active_hands(active_hands)  
+
+            print(obfuscated_hands) 
 
             conn.commit()
 
