@@ -29,8 +29,14 @@ const GameCreation = () => {
 
     console.log("[GAME CREATION, API REQ.] >>");
     console.log(resp);
-    console.log(status);
 
+    if(status == 400) {
+      setError(resp["detail"]);
+    }
+
+    if(status == 200){
+      window.location.href = "/game"
+    }
   }
 
   const InitializeGame = () => {

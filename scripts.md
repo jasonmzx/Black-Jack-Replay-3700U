@@ -60,6 +60,7 @@ CREATE TABLE card_registry (
 
 CREATE TABLE active_games (
 	game_id INT NOT NULL AUTO_INCREMENT,
+	game_uuid VARCHAR(255) NOT NULL,
 	state INT,
 	player INT NOT NULL,
 	player_wager BIGINT NOT NULL,
@@ -95,6 +96,7 @@ CREATE TABLE active_hands (
 
 CREATE TABLE replay_games (
 	r_game_id INT NOT NULL AUTO_INCREMENT,
+	r_game_uuid VARCHAR(255) NOT NULL,
 	state INT,
 	player INT NOT NULL,
 	player_wager BIGINT NOT NULL,

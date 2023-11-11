@@ -1,18 +1,14 @@
 from fastapi import APIRouter, HTTPException
 import random
+import uuid
 
 from database import connection_pool
 from .models import InitGame, Credential
 
 from database.db_utility import DB_get_user_by_cookie
-from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
+from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game, DB_GAME_get_active_hands
 
 router = APIRouter()
-
-@router.get("/test")
-def gameInfo():
-    return {"hej" : "blat"}
-
 
 @router.post("/init")
 def init_game(req: InitGame):
@@ -31,7 +27,10 @@ def init_game(req: InitGame):
 
     #*** Check if a Player's already in a game:
 
-    if DB_GAME_Is_player_in_game(user_record["user_id"]) is True:
+    if DB_GAME_Is_player_in_game(user_record["user_id"]) is not None:
+
+        DB_GAME_get_active_hands(user_record["user_id"])
+
         raise HTTPException(status_code=400, detail="You're already in a game!")
 
     #TODO: Wager check & assertions...  req.wager
@@ -50,8 +49,10 @@ def init_game(req: InitGame):
 
             #*---------- 1) Initialize game ----------
 
-            sql = "INSERT INTO active_games (state, player, player_wager) VALUES (%s, %s, %s)"
-            val = (-1, user_record["user_id"], req.wager)
+            game_uuid = str(uuid.uuid4())
+
+            sql = "INSERT INTO active_games (game_uuid, state, player, player_wager) VALUES (%s, %s, %s, %s)"
+            val = (game_uuid, -1, user_record["user_id"], req.wager)
             cursor.execute(sql, val)
 
             game_id = cursor.lastrowid #note: This `lastrowid` only works if the P. key is AUTO-INCR
@@ -100,6 +101,10 @@ def init_game(req: InitGame):
 
     return {"OK" : 200}
     #Get player in question
+
+
+# @router.post("/my")
+
 
 @router.post("/whoami")
 def whoami(req: Credential):

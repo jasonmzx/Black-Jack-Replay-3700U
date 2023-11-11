@@ -66,7 +66,6 @@ const RenderHand = () => {
     const foundCookie = findCookie("tk", document.cookie);
     console.log(foundCookie)
 
-    API_Initialize_game(foundCookie, 100, ()=>{});
 
   }, []); //! ON MOUNT
 
