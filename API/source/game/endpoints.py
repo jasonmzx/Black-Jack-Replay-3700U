@@ -67,7 +67,7 @@ def init_game(req: InitGame):
             val = (game_uuid, None, user_record["user_id"], req.wager)
             cursor.execute(sql, val)
 
-            #*---------- 3) Insert cards from `card_registry` in a shuffle manner ----------
+            #*---------- 3) Insert cards from `card_registry` in a shuffle manner into `game_decks` , this is for active games only ----------
 
             card_ids = list(range(1,53))
             random.shuffle(card_ids)
@@ -78,12 +78,11 @@ def init_game(req: InitGame):
                 val = (game_id, deck_position, card_id)
                 cursor.execute(game_deck_insert, val)
 
-            
             conn.commit()
 
             #? Transaction needs to be commit, as we need a deck to pull from...
 
-            #*---------- 3) Pulling of cards off the top of the deck (Into Player's and Dealer's hands) ----------
+            #*---------- 4) Pulling of cards off the top of the deck (Into Player's and Dealer's hands) ----------
 
             drawn_cards = []
 
@@ -112,7 +111,24 @@ def init_game(req: InitGame):
     #Get player in question
 
 
-# @router.post("/my")
+@router.post("/hands")
+def active_hands(req: Credential):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    print(user_record["user_id"])
+
+    hands = DB_GAME_get_active_hands(user_record["user_id"])
+
+    return hands
+
+        
+
 
 
 @router.post("/whoami")

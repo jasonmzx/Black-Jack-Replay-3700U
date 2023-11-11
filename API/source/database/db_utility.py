@@ -52,23 +52,25 @@ def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, game_uuid: str, ho
             val = (game_id, pulled_card['deck_position'])
             cursor.execute(stmt, val)
             
-            # Insert into active hands
+            #*----------- Insert card into Active Hands ----------------------
 
             #? shown and holder are BIT datatypes in sql
             stmt = "INSERT active_hands (game_id, card_id, shown, holder) VALUES (%s, %s, %s, %s)"
             val = (game_id, pulled_card['card_id'], bool(shown), bool(holder))
             cursor.execute(stmt,val)
 
-
-            #* lookup replay tbl
+                #*----------- Lookup Replay Games from Game ID ----------------------
             stmt = "SELECT * FROM replay_games WHERE r_game_uuid = %s LIMIT 1"
             val = (game_uuid,)  
             cursor.execute(stmt, val)
 
             replay_game = cursor.fetchone()
 
-            print("####### Replay Game ##########")
-            print(replay_game)
+            #*----------- Insert card into Replay Hands ----------------------
+
+            stmt = "INSERT replay_hands (r_game_id, card_id, shown, holder) VALUES (%s, %s, %s, %s)"
+            val = (replay_game["r_game_id"], pulled_card['card_id'], bool(shown), bool(holder))
+            cursor.execute(stmt,val)
 
             conn.commit()
 
@@ -101,8 +103,8 @@ def DB_GAME_Is_player_in_game(player_id: int):
             if active_game is None:
                 return False
 
-            return active_game["game_id"] #If it gets here, active_game isn't false, so Player is in a game
             conn.commit()
+            return active_game["game_id"] #If it gets here, active_game isn't false, so Player is in a game
 
         except Exception as err:
             # For any other exceptions, still roll back the transaction
@@ -145,9 +147,9 @@ WHERE ah.game_id = %s
             active_hands = cursor.fetchall()
             obfuscated_hands = obfuscate_active_hands(active_hands)  
 
-            print(obfuscated_hands) 
-
             conn.commit()
+            return obfuscated_hands
+
 
         except Exception as err:
             # For any other exceptions, still roll back the transaction
