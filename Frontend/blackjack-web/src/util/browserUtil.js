@@ -1,3 +1,5 @@
+import React from 'react'
+
 export function findCookie(cookieName, cookies) {
  
     //Split each cookie
@@ -19,5 +21,21 @@ export function findCookie(cookieName, cookies) {
             return cookies[i][1]
         }
     }
+
+}
+
+export function activeGameLoggingAlgorithm(state, hands) {
+
+    let lg = [];
+
+    for(const [idx,hand] of hands.entries()) {
+        lg.push(
+            <>
+                {hand["holder"] ? "Dealer" : "Player"} drew a {hand["card_name"]} of {hand["symbol_name"]} | VALUE: {hand["card_value"]}
+            </>
+        );
+    }
+
+    return lg;
 
 }

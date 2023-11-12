@@ -7,7 +7,7 @@ import CardRender from '../components/CardRender';
 //* Redux Integration
 import { useSelector, useDispatch } from 'react-redux';
 import { edit_key } from '../redux/features/gameSlice.js';
-import { findCookie } from '../util/browserUtil';
+import { findCookie, activeGameLoggingAlgorithm } from '../util/browserUtil';
 
 //* API Endpoints
 import { API_get_game } from '../util/API';
@@ -29,13 +29,22 @@ const Game = () => {
 
 // }
 
+
+
+
+
+
+
   //* ========== ========== ========== ========== ==========
   //* >> React State & JSX Building functions
   //* ========== ========== ========== ========== ==========
 
-   //! General Game State info.
+   //! Game State for Heading Info. Banner
    const [wager, setWager] = React.useState(<></>);
    const [gameStatus, setGameStatus] = React.useState(<></>);
+
+   //! Natural Language Game Log
+   const [gameLog, setGameLog] = React.useState(<></>);
 
    //! Participants Hands
     const [playerHand, setPlayerHand] = React.useState(<></>);
@@ -76,6 +85,25 @@ const RenderHand = (hands_payload) => {
     setDealerHand(dealerHandDump);
 }
 
+const RenderLog = (state, hands_payload) => {
+    const logStrs = activeGameLoggingAlgorithm(state, hands_payload);
+    
+    let logDump = [];
+
+    for (const logStr of logStrs) {
+        logDump.push(
+            <>
+            <span>
+                {logStr}
+            </span>
+            <br/>
+            </>
+        );
+    }
+    
+    setGameLog(logDump);
+}
+
 
   //* ========== ========== ========== ========== ==========
   //* >> API Handlers
@@ -96,7 +124,8 @@ const RenderHand = (hands_payload) => {
         //? ------ 3. Set Player's Hand & Set Dealer's Hand
         RenderHand(json["hands"]);
 
-        
+        //? ----- 4. Set Game Log
+        RenderLog(json["state"], json["hands"]);
     }
   }
 
@@ -152,9 +181,7 @@ const RenderHand = (hands_payload) => {
                             
                             {/* GAME LOG ENTRIES GO INTO HERE */}
 
-                            <span>10:42 PM : You hit</span> <br/>
-                            <span>10:42 PM : You hit</span>
-                           
+                            {gameLog}
                         </div>
 
                         <div class="col-md-9">
@@ -170,8 +197,9 @@ const RenderHand = (hands_payload) => {
 
                                 <h1>Your Cards</h1>
                                 <div class="row g-0">
-                                    
                                     {playerHand}
+                                </div>
+
 
                                     {/* PLAYER'S ACTIONS */}
                                     
@@ -186,9 +214,6 @@ const RenderHand = (hands_payload) => {
                                         </div>
                                     </div>
 
-
-
-                                </div>
                             </div>
                         </div>
                     </div>
