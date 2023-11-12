@@ -1,16 +1,14 @@
 
-
-# this function hides the not shown cards, so that the player can't view it
-def obfuscate_active_hands(payload):
-    
+def format_active_hands(payload, obfuscate):
+    game_id = None
     game_uuid = None
     player_wager = None
     state = None
 
-    obfuscated_cards = []
+    formatted_cards = []
 
     for card in payload:
-        if card["shown"] == 0:
+        if card["shown"] == 0 and obfuscate is True:
             # Redact Symbols
             card["symbol_type"] = -1
             card["symbol_name"] = ""
@@ -22,19 +20,24 @@ def obfuscate_active_hands(payload):
             card["card_id"] = -1
 
         #for every card, remove game uuid & state from entry
+        game_id = card["game_id"]
         game_uuid = card["game_uuid"]
         state = card["state"]
         player_wager = card["player_wager"]
 
+        del card["game_id"]
         del card["game_uuid"]
         del card["state"]
         del card["player_wager"]
 
-        obfuscated_cards.append(card)
+        formatted_cards.append(card)
 
     return {
+        "game_id" : game_id,
         "game_uuid" : game_uuid,
         "player_wager" : player_wager,
         "state" : state,
-        "hands" : obfuscated_cards
-    }
+        "hands" : formatted_cards
+    }    
+
+#* ^ this function hides the not shown cards, so that the player can't view it If obfuscate is True

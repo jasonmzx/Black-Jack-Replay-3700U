@@ -83,3 +83,20 @@ export async function API_get_game(cookie, callback) {
   callback(ResponseJSON, ResponseStatus);
   return;
 }
+
+export async function API_hit(cookie, callback) {
+
+  const RESPONSE = await fetch(ENDPOINT + 'game/hit', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+          "cookie": cookie
+        })
+  });
+
+  let ResponseJSON = await RESPONSE.json();
+  let ResponseStatus = RESPONSE.status;
+
+  callback(ResponseJSON, ResponseStatus);
+  return;
+}

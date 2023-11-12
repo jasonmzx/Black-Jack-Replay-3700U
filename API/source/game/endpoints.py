@@ -123,13 +123,71 @@ def active_hands(req: Credential):
 
     print(user_record["user_id"])
 
-    hands = DB_GAME_get_active_hands(user_record["user_id"])
+    hands = DB_GAME_get_active_hands(user_record["user_id"], True) #Obfuscated Hands, as it's being sent to player
 
     return hands
 
         
 
+@router.post("/call")
+def player_call(req: Credential):
+    return
 
+@router.post("/hit")
+def player_hit(req: Credential):
+        
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    print("/call, User ID: "+str(user_record["user_id"]))
+
+    hands_object = DB_GAME_get_active_hands(user_record["user_id"], False)
+
+    hands = hands_object["hands"]
+
+    player_hand_value = 0
+
+
+    #* >> Player Hand's Value
+    #! Poor Code Quality but idc anymore
+
+    for card in hands:
+        
+        card_value = card["card_value"]
+        
+        if card_value is not None and card["holder"] == 0:
+            player_hand_value += card_value 
+
+    for card in hands:
+        
+        card_value = card["card_value"]
+        
+        if card_value is None and card["holder"] == 0: #Ace Case
+
+            # Max value the Player's hand can be is 10, for me to give them 11 as Ace
+            if player_hand_value <= 10:
+                player_hand_value += 11
+            else:
+                player_hand_value += 1
+
+    #! Poor Code Quality but idc anymore
+
+
+    print("PLAYER HAND VALUE (before Pull): "+str(player_hand_value))
+
+    # Hit Action | Pulled card
+    pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(hands_object["game_id"], hands_object["game_uuid"], 0, 1)
+    
+
+    print("#### HIT! , Pulled Card ######")
+    print(pulled_card)
+
+    return
+    
 
 @router.post("/whoami")
 def whoami(req: Credential):

@@ -37,5 +37,4 @@ export function activeGameLoggingAlgorithm(state, hands) {
     }
 
     return lg;
-
 }

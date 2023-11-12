@@ -10,7 +10,7 @@ import { edit_key } from '../redux/features/gameSlice.js';
 import { findCookie, activeGameLoggingAlgorithm } from '../util/browserUtil';
 
 //* API Endpoints
-import { API_get_game } from '../util/API';
+import { API_get_game, API_hit } from '../util/API';
 
 
 const Game = () => {
@@ -129,6 +129,17 @@ const RenderLog = (state, hands_payload) => {
     }
   }
 
+  const handleHit = (json,status) => {
+    console.log(json);
+  }
+
+  const hitResp = () => {
+    const foundCookie = findCookie("tk", document.cookie);
+    API_hit(foundCookie, handleHit);
+
+  }
+
+
   //* ========== ========== ========== ========== ==========
   //* >> React UseEffects
   //* ========== ========== ========== ========== ==========
@@ -180,8 +191,8 @@ const RenderLog = (state, hands_payload) => {
                             </div>
                             
                             {/* GAME LOG ENTRIES GO INTO HERE */}
-
                             {gameLog}
+
                         </div>
 
                         <div class="col-md-9">
@@ -205,7 +216,8 @@ const RenderLog = (state, hands_payload) => {
                                     
                                     <div class="col-12 col-md-6 col-lg-4">
                                         <div class="clean-product-item">
-                                            <div class="image"></div><button class="btn btn-primary" type="button">HIT (Draw Gard)</button>
+                                            <div class="image"></div><button class="btn btn-primary" type="button" 
+                                            onClick={() => {hitResp();}}> HIT (Draw Gard) </button>
                                         </div>
                                     </div>
                                     <div class="col">

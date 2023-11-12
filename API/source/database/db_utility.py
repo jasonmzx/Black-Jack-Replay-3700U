@@ -1,5 +1,5 @@
 from . import connection_pool
-from .db_utility_helper import obfuscate_active_hands
+from .db_utility_helper import format_active_hands
 
 def DB_get_user_by_cookie(cookie: str):
     try:
@@ -37,7 +37,15 @@ def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, game_uuid: str, ho
 
         try:
             # Find the record by game_id and order by deck_position.
-            stmt = "SELECT * FROM game_decks WHERE game_id = %s ORDER BY deck_position LIMIT 1"
+            stmt = """
+            SELECT gd.*, cr.* 
+            FROM game_decks gd
+            INNER JOIN card_registry cr ON gd.card_id = cr.card_id
+            WHERE gd.game_id = %s 
+            ORDER BY gd.deck_position 
+            LIMIT 1
+            """
+            
             val = (game_id,)  
             cursor.execute(stmt, val)
 
@@ -113,7 +121,7 @@ def DB_GAME_Is_player_in_game(player_id: int):
             raise err
 
 
-def DB_GAME_get_active_hands(player_id: int):
+def DB_GAME_get_active_hands(player_id: int, obfuscate: bool):
 
     #asserting for if player is really in a game:
     game_id = DB_GAME_Is_player_in_game(player_id)
@@ -132,8 +140,8 @@ def DB_GAME_get_active_hands(player_id: int):
             stmt = """
 SELECT ah.card_id, ah.shown, ah.holder, 
        cr.symbol_type, est.symbol_name, 
-       cr.card_type, ect.card_name, 
-       cr.card_value, ag.game_uuid, ag.state, ag.player_wager
+       cr.card_type, cr.card_value, ect.card_name,  
+       ag.game_uuid, ag.game_id, ag.state, ag.player_wager
 FROM active_hands ah
 INNER JOIN card_registry cr ON ah.card_id = cr.card_id
 INNER JOIN ENUM_card_type ect ON cr.card_type = ect.card_type
@@ -143,12 +151,13 @@ WHERE ah.game_id = %s
             """
             val = (game_id,)  
             cursor.execute(stmt, val)
-
+            
             active_hands = cursor.fetchall()
-            obfuscated_hands = obfuscate_active_hands(active_hands)  
+            formatted_hands = format_active_hands(active_hands, obfuscate)  
 
             conn.commit()
-            return obfuscated_hands
+
+            return formatted_hands
 
 
         except Exception as err:
