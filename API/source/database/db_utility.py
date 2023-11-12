@@ -133,7 +133,7 @@ def DB_GAME_get_active_hands(player_id: int):
 SELECT ah.card_id, ah.shown, ah.holder, 
        cr.symbol_type, est.symbol_name, 
        cr.card_type, ect.card_name, 
-       cr.card_value, ag.game_uuid
+       cr.card_value, ag.game_uuid, ag.state, ag.player_wager
 FROM active_hands ah
 INNER JOIN card_registry cr ON ah.card_id = cr.card_id
 INNER JOIN ENUM_card_type ect ON cr.card_type = ect.card_type

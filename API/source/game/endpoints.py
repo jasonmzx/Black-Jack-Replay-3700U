@@ -55,7 +55,7 @@ def init_game(req: InitGame):
             game_uuid = str(uuid.uuid4())
 
             sql = "INSERT INTO active_games (game_uuid, state, player, player_wager) VALUES (%s, %s, %s, %s)"
-            val = (game_uuid, -1, user_record["user_id"], req.wager)
+            val = (game_uuid, 0, user_record["user_id"], req.wager)
             cursor.execute(sql, val)
 
             game_id = cursor.lastrowid #note: This `lastrowid` only works if the P. key is AUTO-INCR

@@ -10,7 +10,7 @@ import { edit_key } from '../redux/features/gameSlice.js';
 import { findCookie } from '../util/browserUtil';
 
 //* API Endpoints
-import { API_Initialize_game } from '../util/API';
+import { API_get_game } from '../util/API';
 
 
 const Game = () => {
@@ -29,33 +29,57 @@ const Game = () => {
 
 // }
 
+  //* ========== ========== ========== ========== ==========
+  //* >> React
+  //* ========== ========== ========== ========== ==========
 
-const RenderHand = () => {
+   //! General Game State info.
+   const [wager, setWager] = React.useState(<></>);
+   const [gameStatus, setGameStatus] = React.useState(<></>);
 
-    let handDump = [];
+   //! Participants Hands
+    const [playerHand, setPlayerHand] = React.useState(<></>);
+    const [dealerHand, setDealerHand] = React.useState(<></>);
+
+
+const RenderHand = (hands_payload) => {
+
+    let playerHandDump = [];
+    let dealerHandDump = [];
 
     for(let i = 0; i < 6; i++){
 
-        handDump.push(
+        playerHandDump.push(
             <div class="col-12 col-md-6 col-lg-4">
                 <CardRender shown={0}/>
             </div>
         );
     }
-
-    return handDump;
-
-    // return(<>
-    //     <div class="col-12 col-md-6 col-lg-4"><CardRender shown={0}/></div>
-    //     <div class="col-12 col-md-6 col-lg-4"><CardRender shown={1}/></div>
-    //     <div class="col-12 col-md-6 col-lg-4"></div>
-    //     <div class="col-12 col-md-6 col-lg-4"></div>
-    //     <div class="col-12 col-md-6 col-lg-4"></div>
-    //     <div class="col-12 col-md-6 col-lg-4"></div>
-    // </>);
-
 }
 
+
+  //* ========== ========== ========== ========== ==========
+  //* >> API Handlers
+  //* ========== ========== ========== ========== ==========
+
+  const handleGetGame = (json, status) => {
+
+    if(status == 200) {
+        console.log(">> HANDLE GET GAME :");
+        console.log(json)
+
+        //? ------ 1. Set Wager Display
+        setWager(json["player_wager"]);
+
+        //? ------ 2. Set Player's Status message, based on state
+            //TODO:
+        
+        //? ------ 3. Set Player's Hand & Set Dealer's Hand
+                
+
+        
+    }
+  }
 
   //* ========== ========== ========== ========== ==========
   //* >> React UseEffects
@@ -64,7 +88,15 @@ const RenderHand = () => {
   React.useEffect(() => {
 
     const foundCookie = findCookie("tk", document.cookie);
-    console.log(foundCookie)
+    console.log(foundCookie);
+
+    //Assert for none cookie
+
+    if(foundCookie != undefined) {
+        API_get_game(foundCookie, handleGetGame)
+    } else {
+        window.href.location = "/login"
+    }
 
 
   }, []); //! ON MOUNT
@@ -81,7 +113,7 @@ const RenderHand = () => {
                 {/* HEADING */}
                 
                 <div class="block-heading">
-                    <h2 class="text-info">Current Wager: 3,500$</h2>
+                    <h2 class="text-info">Current Wager: {wager} $</h2>
                     <p>It's currently YOUR turn, either HIT or CALL</p>
                 </div>
 
@@ -111,7 +143,7 @@ const RenderHand = () => {
                                 <h1>The Dealer's Hand</h1>
                                 <div class="row g-0">
                                     
-                                    {RenderHand()}
+                                    {dealerHand}
 
                                 </div>
                                 
@@ -120,7 +152,7 @@ const RenderHand = () => {
                                 <h1>Your Cards</h1>
                                 <div class="row g-0">
                                     
-                                    {RenderHand()}
+                                    {playerHand}
 
                                     {/* PLAYER'S ACTIONS */}
                                     
