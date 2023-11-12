@@ -30,7 +30,7 @@ const Game = () => {
 // }
 
   //* ========== ========== ========== ========== ==========
-  //* >> React
+  //* >> React State & JSX Building functions
   //* ========== ========== ========== ========== ==========
 
    //! General Game State info.
@@ -42,19 +42,38 @@ const Game = () => {
     const [dealerHand, setDealerHand] = React.useState(<></>);
 
 
+const cardEntryWrapper = (hand) => {
+    return <div class="col-12 col-md-6 col-lg-4">
+    <CardRender shown={hand["shown"]}
+        card_name={hand["card_name"]}
+        card_type={hand["card_type"]}
+        symbol_name={hand["symbol_name"]}
+        symbol_type={hand["symbol_type"]}
+        card_id={hand["card_id"]}
+        card_value={hand["card_value"]}
+    />
+    </div>
+}
+
 const RenderHand = (hands_payload) => {
 
     let playerHandDump = [];
     let dealerHandDump = [];
 
-    for(let i = 0; i < 6; i++){
 
-        playerHandDump.push(
-            <div class="col-12 col-md-6 col-lg-4">
-                <CardRender shown={0}/>
-            </div>
-        );
+    for(const [index, hand] of hands_payload.entries()) {
+        
+        if(!hand["holder"]) { //* 0 Denotes the Player
+            playerHandDump.push(cardEntryWrapper(hand));
+
+        } else { //* 1 Denotes the Dealer
+            dealerHandDump.push(cardEntryWrapper(hand));
+        }
+
     }
+
+    setPlayerHand(playerHandDump);
+    setDealerHand(dealerHandDump);
 }
 
 
@@ -75,7 +94,7 @@ const RenderHand = (hands_payload) => {
             //TODO:
         
         //? ------ 3. Set Player's Hand & Set Dealer's Hand
-                
+        RenderHand(json["hands"]);
 
         
     }

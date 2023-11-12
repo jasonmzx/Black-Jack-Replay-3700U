@@ -207,6 +207,8 @@ VALUES
 
 ## Script #3 | Truncation of all games
 
+**Purpose**: During development, I found myself having to clear all the following tables *(not deleting)* as there involvement in all these tables during Active & Replay Games on the system, therefore if I wanted to do a clean reset of the games, this is the script for that.
+
 ```sql
 USE blackjack_replay;
 
