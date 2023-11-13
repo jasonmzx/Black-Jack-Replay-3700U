@@ -166,3 +166,54 @@ WHERE ah.game_id = %s
             print(f"Error: {err}")
             raise err
 
+
+# Switches turns of a given player id's active game from Player to Dealer's turn!
+
+def DB_GAME_active_game_switch_turns(player_id: int):
+    # Asserting if the player is really in a game:
+    game_id = DB_GAME_Is_player_in_game(player_id)
+
+    # Check if the player is not in a game
+    if not game_id:
+        return None
+
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+        # Begin transaction
+        conn.start_transaction()
+
+        try:
+            # Fetch game_uuid from active_games
+            cursor.execute("SELECT game_uuid FROM active_games WHERE game_id = %s", (game_id,))
+            game_uuid_result = cursor.fetchone()
+
+            # Check if game_uuid is found
+            if game_uuid_result:
+                game_uuid = game_uuid_result['game_uuid'] #*It's a dict with 1 entry, not a direct UUID str...
+
+                # Update state in active_games
+                cursor.execute("""
+                    UPDATE active_games SET state = 1 WHERE game_id = %s
+                """, (game_id,))
+
+                # Update shown status in replay_hands and active_hands
+                update_stmt = """
+                    UPDATE replay_hands, active_hands 
+                    SET replay_hands.shown = 1, active_hands.shown = 1 
+                    WHERE replay_hands.r_game_id = %s AND active_hands.game_id = %s 
+                    AND replay_hands.shown = 0 AND active_hands.shown = 0
+                """
+                cursor.execute(update_stmt, (game_uuid, game_id))
+
+                # Commit the transaction if no errors
+                conn.commit()
+            else:
+                raise ValueError("Game UUID not found for the provided game ID.")
+
+        except Exception as err:
+            # Rollback the transaction in case of any exception
+            conn.rollback()
+            print(f"Error: {err}")
+            raise
+
+    # Return success status
+    return True

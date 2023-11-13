@@ -5,8 +5,12 @@ import uuid
 from database import connection_pool
 from .models import InitGame, Credential
 
+# Database Utility 
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game, DB_GAME_get_active_hands
+
+# Game Utility (Functionality abstractions for "main game" Application)
+from .game_utility import GAME_UTIL_calculate_hand
 
 router = APIRouter()
 
@@ -32,7 +36,7 @@ def init_game(req: InitGame):
 
     if in_game is not False:
 
-        DB_GAME_get_active_hands(user_record["user_id"])
+        DB_GAME_get_active_hands(user_record["user_id"], True) #Obfuscate hand
 
         raise HTTPException(status_code=400, detail="You're already in a game!")
 
@@ -90,6 +94,17 @@ def init_game(req: InitGame):
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
+            
+            #* ------ Check player's current hand and assert for a 21
+
+            hands_object = DB_GAME_get_active_hands(user_record["user_id"], False)
+
+            player_hand_value = GAME_UTIL_calculate_hand(hands_object["hands"])
+
+            if player_hand_value == 21: #* ASSERT FOR "21" CASE
+                
+                #End Player's turn, and commence dealer's term
+                DB_GAME_active_game_switch_turns()
 
             # Give dealer (1) 2 Cards, 1 shown, 1 hidden
 
@@ -146,36 +161,9 @@ def player_hit(req: Credential):
     print("/call, User ID: "+str(user_record["user_id"]))
 
     hands_object = DB_GAME_get_active_hands(user_record["user_id"], False)
-
     hands = hands_object["hands"]
 
-    player_hand_value = 0
-
-
-    #* >> Player Hand's Value
-    #! Poor Code Quality but idc anymore
-
-    for card in hands:
-        
-        card_value = card["card_value"]
-        
-        if card_value is not None and card["holder"] == 0:
-            player_hand_value += card_value 
-
-    for card in hands:
-        
-        card_value = card["card_value"]
-        
-        if card_value is None and card["holder"] == 0: #Ace Case
-
-            # Max value the Player's hand can be is 10, for me to give them 11 as Ace
-            if player_hand_value <= 10:
-                player_hand_value += 11
-            else:
-                player_hand_value += 1
-
-    #! Poor Code Quality but idc anymore
-
+    player_hand_value = GAME_UTIL_calculate_hand(hands)
 
     print("PLAYER HAND VALUE (before Pull): "+str(player_hand_value))
 

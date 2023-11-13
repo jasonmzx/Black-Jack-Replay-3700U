@@ -30,11 +30,6 @@ const Game = () => {
 // }
 
 
-
-
-
-
-
   //* ========== ========== ========== ========== ==========
   //* >> React State & JSX Building functions
   //* ========== ========== ========== ========== ==========
@@ -136,9 +131,7 @@ const RenderLog = (state, hands_payload) => {
   const hitResp = () => {
     const foundCookie = findCookie("tk", document.cookie);
     API_hit(foundCookie, handleHit);
-
   }
-
 
   //* ========== ========== ========== ========== ==========
   //* >> React UseEffects
@@ -149,14 +142,11 @@ const RenderLog = (state, hands_payload) => {
     const foundCookie = findCookie("tk", document.cookie);
     console.log(foundCookie);
 
-    //Assert for none cookie
-
-    if(foundCookie != undefined) {
-        API_get_game(foundCookie, handleGetGame)
+    if(foundCookie != undefined) { 
+        API_get_game(foundCookie, handleGetGame);
     } else {
-        window.href.location = "/login"
+        window.href.location = "/login";
     }
-
 
   }, []); //! ON MOUNT
 
