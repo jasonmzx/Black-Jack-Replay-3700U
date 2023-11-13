@@ -167,47 +167,55 @@ WHERE ah.game_id = %s
             raise err
 
 
+
+def DB_GAME_get_full_game_result(game_id: int):
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+        # Execute the SELECT query
+        cursor.execute("SELECT * FROM active_games WHERE game_id = %s", (game_id,))
+        # Fetch one record
+        game_result = cursor.fetchone()
+        return game_result
+
 # Switches turns of a given player id's active game from Player to Dealer's turn!
 
 def DB_GAME_active_game_switch_turns(player_id: int):
     # Asserting if the player is really in a game:
     game_id = DB_GAME_Is_player_in_game(player_id)
 
-    # Check if the player is not in a game
+    # Early check if the player is not in a game
     if not game_id:
         return None
+
+    game_result = DB_GAME_get_full_game_result(game_id)
+
+    # Check if game details are found
+    if not game_result:
+        return None
+
+    game_uuid = game_result['game_uuid']
 
     with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
         # Begin transaction
         conn.start_transaction()
 
         try:
-            # Fetch game_uuid from active_games
-            cursor.execute("SELECT game_uuid FROM active_games WHERE game_id = %s", (game_id,))
-            game_uuid_result = cursor.fetchone()
+            # Update state in active_games
+            cursor.execute("UPDATE active_games SET state = 1 WHERE game_id = %s", (game_id,))
 
-            # Check if game_uuid is found
-            if game_uuid_result:
-                game_uuid = game_uuid_result['game_uuid'] #*It's a dict with 1 entry, not a direct UUID str...
+            #* 1. Update shown status in active_hands, with game_id (Show all hidden cards to player)
+            update_active_hands = """
+                UPDATE active_hands 
+                SET shown = 1 
+                WHERE game_id = %s AND shown = 0
+            """
+            cursor.execute(update_active_hands, (game_id,))
 
-                # Update state in active_games
-                cursor.execute("""
-                    UPDATE active_games SET state = 1 WHERE game_id = %s
-                """, (game_id,))
+            #* 2. TODO: Mirror over Replay Hands
+            #TODO
 
-                # Update shown status in replay_hands and active_hands
-                update_stmt = """
-                    UPDATE replay_hands, active_hands 
-                    SET replay_hands.shown = 1, active_hands.shown = 1 
-                    WHERE replay_hands.r_game_id = %s AND active_hands.game_id = %s 
-                    AND replay_hands.shown = 0 AND active_hands.shown = 0
-                """
-                cursor.execute(update_stmt, (game_uuid, game_id))
 
-                # Commit the transaction if no errors
-                conn.commit()
-            else:
-                raise ValueError("Game UUID not found for the provided game ID.")
+            # Commit the transaction if no errors
+            conn.commit()
 
         except Exception as err:
             # Rollback the transaction in case of any exception
