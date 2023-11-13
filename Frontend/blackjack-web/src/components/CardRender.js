@@ -1,30 +1,41 @@
-import React from 'react'
+import React from 'react';
 
-import cardBack from "../static/img/card_back.jpg";
-import cardFront from "../static/img/card_sample.png";
+import cardBack from "../static/img/card_back.png"
+import cardFront from "../static/img/Hearts/Ace.png"
 
-const CardRender = ({shown, card_type, card_name, symbol_type, symbol_name, card_value, card_id}) => {
+const CardRender = ({ shown, card_type, card_name, symbol_type, symbol_name, card_value, card_id }) => {
+  const [image, setImage] = React.useState(null)
 
+  React.useEffect(() => {
+    const importImage = async () => {
+      try {
+        const importedImage = await import(`../static/img/${symbol_name}/${card_value}.png`)
+        setImage(importedImage.default)
+      } catch (error) {
+        console.error(error)
+      }
+    }
 
-  const card_jsx_builder = (imgSrc) => {
+    importImage()
+  }, [card_value, symbol_name])
 
-    return(<div>
-      <img src={imgSrc}/>
-      <br/>
-      {card_value} | {card_name} of {symbol_name} 
-    </div>)
-  }
-
+  const cardJsxBuilder = (imgSrc) => (
+    <div>
+      <img src={card_value === -1 ? cardBack : image} width={200} alt="Card Image" />
+      <br />
+      {card_value} | {card_name} of {symbol_name}
+    </div>
+  )
 
   const render = (shown) => {
-    if(shown == 1){
-      return card_jsx_builder(cardFront)
+    if (shown === 1) {
+      return cardJsxBuilder(cardFront)
     } else {
-      return card_jsx_builder(cardBack)
+      return cardJsxBuilder(cardBack)
     }
   }
 
-  return (render(shown))
+  return render(shown)
 }
 
 export default CardRender
