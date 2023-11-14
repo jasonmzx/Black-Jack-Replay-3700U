@@ -7,7 +7,8 @@ from .models import InitGame, Credential
 
 # Database Utility 
 from database.db_utility import DB_get_user_by_cookie
-from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game, DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns
+from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
+from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands
 
 # Game Utility (Functionality abstractions for "main game" Application)
 from .game_utility import GAME_UTIL_calculate_hand
@@ -34,7 +35,6 @@ def init_game(req: InitGame):
     USER_ID = user_record["user_id"]
 
     in_game = DB_GAME_Is_player_in_game(USER_ID)
-    print("### INGAME: "+str(in_game))
 
     if in_game is not False:
 
@@ -111,6 +111,9 @@ def init_game(req: InitGame):
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 0))
+
+            #? Replay Function
+            DB_GAME_mirror_replay_hands(game_uuid)
 
             print("Cards have been drawn...")
             return {"drawn_cards" : drawn_cards}    
