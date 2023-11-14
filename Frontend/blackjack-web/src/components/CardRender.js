@@ -28,11 +28,11 @@ const CardRender = ({ shown, card_type, card_name, symbol_type, symbol_name, car
 
   const formattedValue = card_name === "Ace" || card_name === "Jack" || card_name === "Queen" || card_name === "King" ? card_name : card_value
   const valueDisplay = card_name === "Ace" ? "1 or 11" : `${card_value}`
-  const cardDescription = card_value === -1 ? "Unknown Card" : `${formattedValue} ${card_name ? `(${valueDisplay}) ` : ''}of ${symbol_name}`
+  const cardDescription = card_value === 0 ? "Unknown Card" : `${formattedValue} ${card_name ? `(${valueDisplay}) ` : ''}of ${symbol_name}`
 
   return (
     <div>
-      <img src={card_value === -1 ? cardBack : image} width={175} alt="Card Image" />
+      <img src={shown === 0 ? cardBack : image} width={175} alt="Card Image" />
       <br />
       {cardDescription}
     </div>

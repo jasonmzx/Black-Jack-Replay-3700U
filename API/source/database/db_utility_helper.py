@@ -35,7 +35,7 @@ def format_active_hands(payload, obfuscate):
             card["card_type"] = -1
             card["card_name"] = ""
             # Redact Value & ID
-            card["card_value"] = -1
+            card["card_value"] = 0
             card["card_id"] = -1
 
     return {
