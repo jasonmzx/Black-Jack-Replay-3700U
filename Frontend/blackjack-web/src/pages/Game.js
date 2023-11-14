@@ -45,6 +45,9 @@ const Game = () => {
     const [playerHand, setPlayerHand] = React.useState(<></>);
     const [dealerHand, setDealerHand] = React.useState(<></>);
 
+    //* Participant Hands Values
+    const [playerHandValue, setPlayerHandVal] = React.useState("Loading...");
+    const [dealerHandValue, setDealerHandVal] = React.useState("Loading...");
 
 const cardEntryWrapper = (hand) => {
     return <div class="col-12 col-md-6 col-lg-4">
@@ -116,8 +119,11 @@ const RenderLog = (state, hands_payload) => {
         //? ------ 2. Set Player's Status message, based on state
         setGameStatus(json["state"])
         
-        //? ------ 3. Set Player's Hand & Set Dealer's Hand
+        //? ------ 3. Set Player's Hand & Set Dealer's Hand, and Hand Values
         RenderHand(json["hands"]);
+
+        setPlayerHandVal(json["player_hand_value"]);
+        setDealerHandVal(json["dealer_hand_value"]);
 
         //? ----- 4. Set Game Log
         RenderLog(json["state"], json["hands"]);
@@ -221,7 +227,7 @@ const RenderLog = (state, hands_payload) => {
 
                         <div class="col-md-9">
                             <div class="products">
-                                <h1>The Dealer's Hand</h1>
+                                <h1>The Dealer's Hand | {dealerHandValue}</h1>
                                 <div class="row g-0">
                                     
                                     {dealerHand}
@@ -230,7 +236,7 @@ const RenderLog = (state, hands_payload) => {
                                 
                                 <br/> <br/> <br/> <br/>
 
-                                <h1>Your Cards</h1>
+                                <h1>Your Cards | {playerHandValue}</h1>
                                 <div class="row g-0">
                                     {playerHand}
                                 </div>

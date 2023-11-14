@@ -166,6 +166,12 @@ WHERE ah.game_id = %s
             active_hands = cursor.fetchall()
             formatted_hands = format_active_hands(active_hands, obfuscate)  
 
+            Player_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 0) #Get Player Hand Value
+            Dealer_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 1) #Get Dealer Hand Value
+
+            formatted_hands["player_hand_value"] = Player_hand_value
+            formatted_hands["dealer_hand_value"] = Dealer_hand_value
+
             conn.commit()
 
             return formatted_hands
@@ -276,3 +282,65 @@ def DB_GAME_Is_player_in_game(player_id: int):
             conn.rollback()
             print(f"Error: {err}")
             raise err
+
+
+#*Possible Game outcomes:
+#? 2: Player Wins
+#? 3: Dealer Wins
+#? 4: Tie
+
+def GAME_UTIL_calculate_hand(hands, holder: int):
+
+    ACTOR_HAND_VAL = 0
+
+    #* >> Player Hand's Value
+    #! Poor Code Quality but idc anymore
+    for card in hands:
+        card_value = card["card_value"]
+        if card_value is not None and card["holder"] == holder:
+            ACTOR_HAND_VAL += card_value 
+
+    for card in hands:
+        card_value = card["card_value"]
+        if card_value is None and card["holder"] == 0: #Ace Case
+
+            # Max value the Player's hand can be is 10, for me to give them 11 as Ace
+            if ACTOR_HAND_VAL <= 10:
+                ACTOR_HAND_VAL += 11
+            else:
+                ACTOR_HAND_VAL += 1
+    return ACTOR_HAND_VAL
+
+def DB_GAME_perform_hit(USER_ID: int):
+
+    hands_object = DB_GAME_get_active_hands(USER_ID, False)
+    hands = hands_object["hands"]
+
+    #Player's Hand Value (Before Hit)
+    player_hand_value = GAME_UTIL_calculate_hand(hands, 0)
+
+    #Player "Hits" the deck
+    pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(hands_object["game_id"], hands_object["game_uuid"], 0, 1)
+    pulled_card_value = pulled_card["card_value"]
+
+    #! >>>> ACE Check 
+    if pulled_card_value is None:
+        if player_hand_value <= 10:
+            pulled_card_value = 11
+        else:
+            pulled_card_value = 1
+
+    #* Player's Hand After the HIT! 
+    Player_hand_after_hit = player_hand_value + pulled_card_value
+
+    if Player_hand_after_hit == 21: #If player get's a 21, automatically end his turn, and let the Dealer proceed
+        DB_GAME_active_game_switch_turns(USER_ID)
+    if Player_hand_after_hit > 21: #If player busts
+        print("PLAYER BUST !! D:::")
+
+    print("#### HIT! , Pulled Card ######")
+    print(pulled_card)
+
+
+def DB_GAME_terminate_game(player_id: int, game_outcome: int):
+    return

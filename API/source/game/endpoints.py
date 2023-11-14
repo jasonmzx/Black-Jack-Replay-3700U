@@ -8,7 +8,7 @@ from .models import InitGame, Credential
 # Database Utility 
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
-from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands
+from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands, DB_GAME_perform_hit
 
 # Game Utility (Functionality abstractions for "main game" Application)
 from .game_utility import GAME_UTIL_calculate_hand
@@ -96,21 +96,23 @@ def init_game(req: InitGame):
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
-            
-            #* ------ Check player's current hand and assert for a 21
-
-            hands_object = DB_GAME_get_active_hands(USER_ID, False)
-
-            player_hand_value = GAME_UTIL_calculate_hand(hands_object["hands"])
-
-            if player_hand_value == 21: #* ASSERT FOR "21" CASE
-                #End Player's turn, and commence dealer's term
-                DB_GAME_active_game_switch_turns(USER_ID)
 
             # Give dealer (1) 2 Cards, 1 shown, 1 hidden
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 0))
+
+            #* ------ Check player's current hand and assert for a 21
+
+            hands_object = DB_GAME_get_active_hands(USER_ID, False)
+
+            player_hand_value = GAME_UTIL_calculate_hand(hands_object["hands"], 0)
+            
+            print("[INIT PULL] >> "+str(player_hand_value))
+
+            if player_hand_value == 21: #* ASSERT FOR "21" CASE
+                #End Player's turn, and commence dealer's term
+                DB_GAME_active_game_switch_turns(USER_ID)
 
             #? Replay Function
             DB_GAME_mirror_replay_hands(game_uuid)
@@ -183,38 +185,9 @@ def player_hit(req: Credential):
 
     print("/call, User ID: "+str(USER_ID))
 
-
-
-    hands_object = DB_GAME_get_active_hands(USER_ID, False)
-    hands = hands_object["hands"]
-
-    player_hand_value = GAME_UTIL_calculate_hand(hands)
-
-    print("PLAYER HAND VALUE (before hit): "+str(player_hand_value))
-
     # Hit Action | Pulled card
-    pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(hands_object["game_id"], hands_object["game_uuid"], 0, 1)
-    pulled_card_value = pulled_card["card_value"]
+    DB_GAME_perform_hit(USER_ID)
 
-    #! ACE Check 
-    if pulled_card_value is None:
-        if player_hand_value <= 10:
-            pulled_card_value = 11
-        else:
-            pulled_card_value = 1
-
-    #! Player's Hand After the HIT! did he bust?
-    Player_hand_after_hit = player_hand_value + pulled_card_value
-
-    if Player_hand_after_hit == 21:
-        DB_GAME_active_game_switch_turns(USER_ID)
-    if Player_hand_after_hit > 21:
-        print("PLAYER LOST !! D:::")
-
-    print("#### HIT! , Pulled Card ######")
-    print(pulled_card)
-
-    print(">>>> PLAYER HAND VALUE (After HIT): "+str(Player_hand_after_hit))
     return
     
 

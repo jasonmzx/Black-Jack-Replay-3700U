@@ -32,7 +32,7 @@ const CardRender = ({ shown, card_type, card_name, symbol_type, symbol_name, car
 
   return (
     <div>
-      <img src={card_value === -1 ? cardBack : image} width={200} alt="Card Image" />
+      <img src={card_value === -1 ? cardBack : image} width={175} alt="Card Image" />
       <br />
       {cardDescription}
     </div>
