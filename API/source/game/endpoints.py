@@ -5,8 +5,13 @@ import uuid
 from database import connection_pool
 from .models import InitGame, Credential
 
+# Database Utility 
 from database.db_utility import DB_get_user_by_cookie
-from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game, DB_GAME_get_active_hands
+from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
+from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands
+
+# Game Utility (Functionality abstractions for "main game" Application)
+from .game_utility import GAME_UTIL_calculate_hand
 
 router = APIRouter()
 
@@ -27,12 +32,13 @@ def init_game(req: InitGame):
 
     #*** Check if a Player's already in a game:
 
-    in_game = DB_GAME_Is_player_in_game(user_record["user_id"])
-    print("### INGAME: "+str(in_game))
+    USER_ID = user_record["user_id"]
+
+    in_game = DB_GAME_Is_player_in_game(USER_ID)
 
     if in_game is not False:
 
-        DB_GAME_get_active_hands(user_record["user_id"])
+        DB_GAME_get_active_hands(USER_ID, True) #Obfuscate hand
 
         raise HTTPException(status_code=400, detail="You're already in a game!")
 
@@ -55,7 +61,7 @@ def init_game(req: InitGame):
             game_uuid = str(uuid.uuid4())
 
             sql = "INSERT INTO active_games (game_uuid, state, player, player_wager) VALUES (%s, %s, %s, %s)"
-            val = (game_uuid, 0, user_record["user_id"], req.wager)
+            val = (game_uuid, 0, USER_ID, req.wager)
             cursor.execute(sql, val)
 
             game_id = cursor.lastrowid #note: This `lastrowid` only works if the P. key is AUTO-INCR
@@ -64,7 +70,7 @@ def init_game(req: InitGame):
             #*---------- 2) Initialize Replay game ----------
 
             sql = "INSERT INTO replay_games (r_game_uuid, state, player, player_wager) VALUES (%s, %s, %s, %s)"
-            val = (game_uuid, None, user_record["user_id"], req.wager)
+            val = (game_uuid, None, USER_ID, req.wager)
             cursor.execute(sql, val)
 
             #*---------- 3) Insert cards from `card_registry` in a shuffle manner into `game_decks` , this is for active games only ----------
@@ -90,11 +96,24 @@ def init_game(req: InitGame):
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 0, 1))
+            
+            #* ------ Check player's current hand and assert for a 21
+
+            hands_object = DB_GAME_get_active_hands(USER_ID, False)
+
+            player_hand_value = GAME_UTIL_calculate_hand(hands_object["hands"])
+
+            if player_hand_value == 21: #* ASSERT FOR "21" CASE
+                #End Player's turn, and commence dealer's term
+                DB_GAME_active_game_switch_turns(USER_ID)
 
             # Give dealer (1) 2 Cards, 1 shown, 1 hidden
 
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 1))
             drawn_cards.append(DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_uuid, 1, 0))
+
+            #? Replay Function
+            DB_GAME_mirror_replay_hands(game_uuid)
 
             print("Cards have been drawn...")
             return {"drawn_cards" : drawn_cards}    
@@ -129,9 +148,22 @@ def active_hands(req: Credential):
 
         
 
-@router.post("/call")
+@router.post("/stand")
 def player_call(req: Credential):
+        
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    print("/stand, User ID: "+str(user_record["user_id"]))
+
+    DB_GAME_active_game_switch_turns(user_record["user_id"])
+
     return
+    
 
 @router.post("/hit")
 def player_hit(req: Credential):
@@ -146,36 +178,9 @@ def player_hit(req: Credential):
     print("/call, User ID: "+str(user_record["user_id"]))
 
     hands_object = DB_GAME_get_active_hands(user_record["user_id"], False)
-
     hands = hands_object["hands"]
 
-    player_hand_value = 0
-
-
-    #* >> Player Hand's Value
-    #! Poor Code Quality but idc anymore
-
-    for card in hands:
-        
-        card_value = card["card_value"]
-        
-        if card_value is not None and card["holder"] == 0:
-            player_hand_value += card_value 
-
-    for card in hands:
-        
-        card_value = card["card_value"]
-        
-        if card_value is None and card["holder"] == 0: #Ace Case
-
-            # Max value the Player's hand can be is 10, for me to give them 11 as Ace
-            if player_hand_value <= 10:
-                player_hand_value += 11
-            else:
-                player_hand_value += 1
-
-    #! Poor Code Quality but idc anymore
-
+    player_hand_value = GAME_UTIL_calculate_hand(hands)
 
     print("PLAYER HAND VALUE (before Pull): "+str(player_hand_value))
 

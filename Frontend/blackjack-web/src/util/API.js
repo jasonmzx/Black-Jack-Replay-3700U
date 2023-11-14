@@ -84,9 +84,9 @@ export async function API_get_game(cookie, callback) {
   return;
 }
 
-export async function API_hit(cookie, callback) {
+export async function API_action(cookie, action, callback) {
 
-  const RESPONSE = await fetch(ENDPOINT + 'game/hit', {
+  const RESPONSE = await fetch(ENDPOINT + 'game/'+action, {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
     body: JSON.stringify({

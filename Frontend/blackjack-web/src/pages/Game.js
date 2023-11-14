@@ -10,7 +10,7 @@ import { edit_key } from '../redux/features/gameSlice.js';
 import { findCookie, activeGameLoggingAlgorithm } from '../util/browserUtil';
 
 //* API Endpoints
-import { API_get_game, API_hit } from '../util/API';
+import { API_get_game, API_action } from '../util/API';
 
 
 const Game = () => {
@@ -28,11 +28,6 @@ const Game = () => {
 //     }));
 
 // }
-
-
-
-
-
 
 
   //* ========== ========== ========== ========== ==========
@@ -129,14 +124,25 @@ const RenderLog = (state, hands_payload) => {
     }
   }
 
+
+  
+  //! >> Game Action Wrapper for API
+
+  const preformAction = (action, callback) => {
+    const foundCookie = findCookie("tk", document.cookie);
+    API_action(foundCookie, action, callback);
+  }
+
+  //! >>>>> ACTION : HIT
+  
   const handleHit = (json,status) => {
     console.log(json);
   }
 
-  const hitResp = () => {
-    const foundCookie = findCookie("tk", document.cookie);
-    API_hit(foundCookie, handleHit);
-
+  //! >>>>> ACTION : HIT
+  
+  const handleStand = (json,status) => {
+    console.log(json);
   }
 
 
@@ -149,14 +155,11 @@ const RenderLog = (state, hands_payload) => {
     const foundCookie = findCookie("tk", document.cookie);
     console.log(foundCookie);
 
-    //Assert for none cookie
-
-    if(foundCookie != undefined) {
-        API_get_game(foundCookie, handleGetGame)
+    if(foundCookie != undefined) { 
+        API_get_game(foundCookie, handleGetGame);
     } else {
-        window.href.location = "/login"
+        window.href.location = "/login";
     }
-
 
   }, []); //! ON MOUNT
 
@@ -217,12 +220,13 @@ const RenderLog = (state, hands_payload) => {
                                     <div class="col-12 col-md-6 col-lg-4">
                                         <div class="clean-product-item">
                                             <div class="image"></div><button class="btn btn-primary" type="button" 
-                                            onClick={() => {hitResp();}}> HIT (Draw Gard) </button>
+                                            onClick={() => {preformAction("hit",handleHit);}}> HIT (Draw Gard) </button>
                                         </div>
                                     </div>
                                     <div class="col">
                                         <div class="clean-product-item">
-                                            <div class="image"></div><button class="btn btn-dark" type="button">Call</button>
+                                            <div class="image"></div><button class="btn btn-dark" type="button"
+                                            onClick={() => {preformAction("stand",handleStand);}}> Stand</button>
                                         </div>
                                     </div>
 
