@@ -114,13 +114,17 @@ const RenderLog = (state, hands_payload) => {
         setWager(json["player_wager"]);
 
         //? ------ 2. Set Player's Status message, based on state
-            //TODO:
+        setGameStatus(json["state"])
         
         //? ------ 3. Set Player's Hand & Set Dealer's Hand
         RenderHand(json["hands"]);
 
         //? ----- 4. Set Game Log
         RenderLog(json["state"], json["hands"]);
+    
+    } else { //Like a 404, or an internal serv. erro
+        console.log("GAME RESP STATUS: "+String(status));
+        window.location.href = "/game/create";
     }
   }
 
@@ -137,14 +141,31 @@ const RenderLog = (state, hands_payload) => {
   
   const handleHit = (json,status) => {
     console.log(json);
+    
+    if(status == 200){
+        getGame();
+    }
   }
 
   //! >>>>> ACTION : HIT
   
   const handleStand = (json,status) => {
     console.log(json);
+
+    if(status == 200){
+        getGame();
+    }
   }
 
+
+ const getGame = () => {
+
+    const foundCookie = findCookie("tk", document.cookie);
+
+    if(foundCookie != undefined) { 
+        API_get_game(foundCookie, handleGetGame);
+    }
+ }
 
   //* ========== ========== ========== ========== ==========
   //* >> React UseEffects
@@ -158,7 +179,7 @@ const RenderLog = (state, hands_payload) => {
     if(foundCookie != undefined) { 
         API_get_game(foundCookie, handleGetGame);
     } else {
-        window.href.location = "/login";
+        window.location.href = "/login";
     }
 
   }, []); //! ON MOUNT
@@ -176,7 +197,7 @@ const RenderLog = (state, hands_payload) => {
                 
                 <div class="block-heading">
                     <h2 class="text-info">Current Wager: {wager} $</h2>
-                    <p>It's currently YOUR turn, either HIT or CALL</p>
+                    <p>It's currently YOUR turn, either HIT or CALL : {gameStatus}</p>
                 </div>
 
                 <div class="content">

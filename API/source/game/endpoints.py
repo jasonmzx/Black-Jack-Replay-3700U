@@ -144,6 +144,10 @@ def active_hands(req: Credential):
 
     hands = DB_GAME_get_active_hands(user_record["user_id"], True) #Obfuscated Hands, as it's being sent to player
 
+    if hands is None:
+         raise HTTPException(status_code=404, detail=str("Game not found...")) #Internal serv err
+
+
     return hands
 
         
@@ -175,22 +179,42 @@ def player_hit(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
-    print("/call, User ID: "+str(user_record["user_id"]))
+    USER_ID = user_record["user_id"]
 
-    hands_object = DB_GAME_get_active_hands(user_record["user_id"], False)
+    print("/call, User ID: "+str(USER_ID))
+
+
+
+    hands_object = DB_GAME_get_active_hands(USER_ID, False)
     hands = hands_object["hands"]
 
     player_hand_value = GAME_UTIL_calculate_hand(hands)
 
-    print("PLAYER HAND VALUE (before Pull): "+str(player_hand_value))
+    print("PLAYER HAND VALUE (before hit): "+str(player_hand_value))
 
     # Hit Action | Pulled card
     pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(hands_object["game_id"], hands_object["game_uuid"], 0, 1)
-    
+    pulled_card_value = pulled_card["card_value"]
+
+    #! ACE Check 
+    if pulled_card_value is None:
+        if player_hand_value <= 10:
+            pulled_card_value = 11
+        else:
+            pulled_card_value = 1
+
+    #! Player's Hand After the HIT! did he bust?
+    Player_hand_after_hit = player_hand_value + pulled_card_value
+
+    if Player_hand_after_hit == 21:
+        DB_GAME_active_game_switch_turns(USER_ID)
+    if Player_hand_after_hit > 21:
+        print("PLAYER LOST !! D:::")
 
     print("#### HIT! , Pulled Card ######")
     print(pulled_card)
 
+    print(">>>> PLAYER HAND VALUE (After HIT): "+str(Player_hand_after_hit))
     return
     
 

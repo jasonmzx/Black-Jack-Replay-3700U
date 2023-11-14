@@ -134,11 +134,11 @@ def DB_GAME_get_active_hands(player_id: int, obfuscate: bool):
 
     #asserting for if player is really in a game:
     game_obj = DB_GAME_Is_player_in_game(player_id)
-    game_id = game_obj["game_id"]
-
-
-    if game_id is False:
+    
+    if not game_obj:
         return None
+
+    game_id = game_obj["game_id"]
 
     # With closes connection pool and cursor automatically!
     with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
