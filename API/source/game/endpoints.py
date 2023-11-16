@@ -24,7 +24,6 @@ def init_game(req: InitGame):
     try:
         print(req.cookie)
         user_record = DB_get_user_by_cookie(req.cookie)
-        print(user_record)
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
@@ -209,14 +208,6 @@ def player_leave_game(req: Credential):
         raise HTTPException(status_code=404, detail="Game can't be deleted...")
     return
 
-@router.post("/replay/hands")
-def replay_hands(req: ReplayGame):
-
-    print(req.uuid)
-    hands = DB_GAME_get_replay_hands(req.uuid, True)
-
-    return hands
-
 @router.post("/whoami")
 def whoami(req: Credential):
 
@@ -229,5 +220,27 @@ def whoami(req: Credential):
 
     return user_record
 
+#========== ========== ========== ========== ==========
+#?----------- REPLAY GAME Endpoints
+# ========== ========== ========== ========== ==========
         
+@router.post("/replay/hands")
+def replay_hands(req: ReplayGame):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    print(req.uuid)
+    hands = DB_GAME_get_replay_hands(req.uuid, True)
+
+    return hands
+
+@router.post("/replay/games")
+def get_replay_games(req: Credential):
+    #TODO:
+    return
 
