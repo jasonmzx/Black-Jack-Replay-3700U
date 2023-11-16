@@ -1,8 +1,11 @@
 import React from 'react'
 
+//* Source React Code Imports
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CardRender from '../components/CardRender';
+
+import { cardEntryWrapper } from '../util/jsxHelper';
 
 //* Redux Integration
 import { useSelector, useDispatch } from 'react-redux';
@@ -56,19 +59,6 @@ const Game = () => {
     //* Participant Hands Values
     const [playerHandValue, setPlayerHandVal] = React.useState("Loading...");
     const [dealerHandValue, setDealerHandVal] = React.useState("Loading...");
-
-    const cardEntryWrapper = (hand) => {
-        return <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-            <CardRender shown={hand["shown"]}
-                card_name={hand["card_name"]}
-                card_type={hand["card_type"]}
-                symbol_name={hand["symbol_name"]}
-                symbol_type={hand["symbol_type"]}
-                card_id={hand["card_id"]}
-                card_value={hand["card_value"]}
-            />
-        </div>
-    }
 
     const RenderHand = (hands_payload) => {
 
