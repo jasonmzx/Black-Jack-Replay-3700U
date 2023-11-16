@@ -24,8 +24,16 @@ def DB_get_user_by_cookie(cookie: str):
 # ========== ========== ========== ========== ==========
 
 
+def PRINT_BANNER(inp: str):
+    print("##################################")
+    print("## >> "+str(inp))
+    print("##################################")
+
 
 def DB_GAME_mirror_replay_hands(game_uuid: str):
+    
+    PRINT_BANNER("Mirroring Replay Hands")
+    
     with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
         # Begin transaction
         conn.start_transaction()
@@ -44,22 +52,24 @@ def DB_GAME_mirror_replay_hands(game_uuid: str):
 
             # Retrieve active hands associated with the active game
             stmt = """
-                SELECT ah.*
+                SELECT ah.* , ag.state
                 FROM active_hands ah
                 INNER JOIN active_games ag ON ah.game_id = ag.game_id
                 WHERE ag.game_uuid = %s
             """
             cursor.execute(stmt, (game_uuid,))
             active_hands = cursor.fetchall()
+            
+            print(active_hands)
 
             # Insert each active hand into replay hands
             insert_stmt = """
-                INSERT INTO replay_hands (r_game_id, card_id, shown, holder) 
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO replay_hands (r_game_id, card_id, shown, holder, step_state) 
+                VALUES (%s, %s, %s, %s, %s)
             """
-            for hand in active_hands:
-                cursor.execute(insert_stmt, (r_game_id, hand['card_id'], hand['shown'], hand['holder']))
 
+            for hand in active_hands:
+                cursor.execute(insert_stmt, (r_game_id, hand['card_id'], hand['shown'], hand['holder'], hand["state"]))
             # Commit the transaction
             conn.commit()
 
@@ -196,14 +206,8 @@ def DB_GAME_active_game_switch_turns(player_id: int):
     # Early check if the player is not in a game
     if not game_id:
         return None
-
-    game_result = DB_GAME_get_full_game_result(game_id)
-
-    # Check if game details are found
-    if not game_result:
-        return None
-
-    game_uuid = game_result['game_uuid']
+        
+    game_uuid = game_obj['game_uuid']
 
     with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
         # Begin transaction
@@ -220,6 +224,9 @@ def DB_GAME_active_game_switch_turns(player_id: int):
                 WHERE game_id = %s AND shown = 0
             """
             cursor.execute(update_active_hands, (game_id,))
+
+            #* 2. <> The Dealer's Play <>
+            #TODO
 
             #* 2. TODO: Mirror over Replay Hands
             #TODO
@@ -337,12 +344,62 @@ def DB_GAME_perform_hit(USER_ID: int):
 
     if Player_hand_after_hit == 21: #If player get's a 21, automatically end his turn, and let the Dealer proceed
         DB_GAME_active_game_switch_turns(USER_ID)
-    if Player_hand_after_hit > 21: #If player busts
-        print("PLAYER BUST !! D:::")
-
+    if Player_hand_after_hit > 21: #If player busts, Dealer AUTO wins
+        DB_GAME_terminate_game(USER_ID, 3)
     print("#### HIT! , Pulled Card ######")
     print(pulled_card)
 
 
+#*Possible Game outcomes:
+#? 2: Player Wins
+#? 3: Dealer Wins
+#? 4: Tie
+
 def DB_GAME_terminate_game(player_id: int, game_outcome: int):
+    game_obj = DB_GAME_Is_player_in_game(player_id)
+    game_id = game_obj["game_id"]
+
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+        try:
+            conn.start_transaction()
+
+            # Terminating Game
+            print("Terminating Game")
+
+            # Updating Player's balance
+            if game_outcome == 2:  # Player Wins, double their wager
+                winnings = int(game_obj["player_wager"])
+                stmt = "UPDATE users SET balance = balance + %s WHERE user_id = %s"
+                val = (winnings, player_id)
+                cursor.execute(stmt, val)
+
+            elif game_outcome == 3:  # Player loses their wager if dealer wins
+                losings = int(game_obj["player_wager"])
+                stmt = "UPDATE users SET balance = balance - %s WHERE user_id = %s"
+                val = (losings, player_id)
+                cursor.execute(stmt, val)
+
+            # Update Active game state
+            stmt = "UPDATE active_games SET state = %s"
+            val = (game_outcome,)
+            cursor.execute(stmt,val)
+
+            # Commit the transaction
+            conn.commit()
+
+        except Exception as err:
+            # Rollback the transaction in case of any exception
+            conn.rollback()
+            print(f"Error: {err}")
+            return False  # Return False if there was an error
+
+    # Return True if everything was successful
+    return True
+
+def DB_GAME_dealers_play(player_id: int):
+    game_obj = DB_GAME_Is_player_in_game(player_id)
+    game_id = game_obj["game_id"]
+    
+#    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+
     return

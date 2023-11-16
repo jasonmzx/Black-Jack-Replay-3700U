@@ -149,7 +149,6 @@ def active_hands(req: Credential):
     if hands is None:
          raise HTTPException(status_code=404, detail=str("Game not found...")) #Internal serv err
 
-
     return hands
 
         
@@ -181,13 +180,18 @@ def player_hit(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
+    # 
     USER_ID = user_record["user_id"]
+    in_game = DB_GAME_Is_player_in_game(USER_ID)
+
+    if in_game is not False:
+
+        DB_GAME_perform_hit(USER_ID)
+        DB_GAME_mirror_replay_hands(in_game["game_uuid"])
 
     print("/call, User ID: "+str(USER_ID))
 
     # Hit Action | Pulled card
-    DB_GAME_perform_hit(USER_ID)
-
     return
     
 

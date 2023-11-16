@@ -171,7 +171,6 @@ const Game = () => {
         }
     }
 
-
     const getGame = () => {
 
         const foundCookie = findCookie("tk", document.cookie);
@@ -180,6 +179,221 @@ const Game = () => {
             API_get_game(foundCookie, handleGetGame);
         }
     }
+
+
+    //* ========== ========== ========== ========== ==========
+    //* >> Entire Game Page State rendering
+    //* ========== ========== ========== ========== ==========
+
+    const UI_STRUCTURE = (statusJSX, bodyJSX) => {
+
+        return (
+            <body>
+                <Navbar />
+                <main class="page catalog-page">
+                    <section class="clean-block clean-catalog dark">
+                        <div class="container">
+
+                            {/* HEADING */}
+
+                            <div class="block-heading">
+                                <h2 class="text-info">Current Wager: {wager} $</h2>
+                                {statusJSX}
+                            </div>
+
+                            <div class="content">
+                                {bodyJSX}
+                            </div>
+                        </div>
+                    </section>
+                </main>
+                <Footer />
+            </body>
+        );
+    }
+
+
+    const RENDER_GAME_UI = (state) => {
+
+        if (state === 0) { //* Player's Turn:
+            const playerTurnBody = (
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <div class="d-none d-md-block">
+                            <div class="filters">
+                                <div class="filter-item">
+                                    <h2 className="text-secondary"> {logsSVG} Game Log:</h2>
+                                </div>
+                                <div class="filter-item"></div>
+                            </div>
+                        </div>
+
+                        {/* GAME LOG ENTRIES GO INTO HERE */}
+                        <div className="ms-2 me-2">
+                            {gameLog}
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-9">
+                        <div class="products">
+                            {/* Player's Hand Heading Element */}
+
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h1>{cardsIconJSX} Dealer's Hand</h1>
+                                <h3>{asteRickSVG} Value: {dealerHandValue}</h3>
+                            </div>
+
+                            {/* Dealer's Actual Hand */}
+
+                            <div class="row g-0">
+                                {dealerHand}
+                            </div>
+
+                            <br /> <br />
+
+                            {/* Player's Hand Heading Element */}
+
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h1>{cardsIconJSX} My Hand</h1>
+                                <h3>{asteRickSVG} Value: {playerHandValue}</h3>
+                            </div>
+
+                            {/* Player's Actual Hand */}
+
+                            <div class="row g-0">
+                                {playerHand}
+                            </div>
+
+                            <br />
+
+                            {/* PLAYER'S ACTIONS */}
+
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary w-100" type="button"
+                                        onClick={() => { preformAction("hit", handleHit); }}> HIT (Draw Card) </button>
+                                </div>
+
+                                <div class="col-6">
+                                    <button class="btn btn-outline-dark w-100" type="button"
+                                        onClick={() => { preformAction("stand", handleStand); }}> Stand</button>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return(
+                UI_STRUCTURE(<p>It's your turn! HIT or STAND</p>, playerTurnBody)
+            );
+        }
+
+        let outcomeJSX;
+
+        if (state === 2) {
+            outcomeJSX = (
+                <div className="alert alert-success d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <h4 className="alert-heading">Congratulations! You've Won </h4>
+                        <p>You've won!</p>
+                    </div>
+                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                </div>
+            );
+        }
+        
+        if (state === 3) {
+            outcomeJSX = (
+                <div className="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <h4 className="alert-heading">Oh no! You've lost...</h4>
+                        <p>Better luck next time!</p>
+                    </div>
+                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                </div>
+            );
+        }
+        
+        if(state === 1 || state === 2 || state === 3 || state === 4){
+            const dealerTurnBody = (
+                <div class="row">
+
+                    <div class="col-md-3">
+
+                        <div class="d-none d-md-block">
+                            <div class="filters">
+                                <div class="filter-item">
+                                    <h2 className="text-secondary"> {logsSVG} Game Log:</h2>
+                                </div>
+                                <div class="filter-item"></div>
+                            </div>
+                        </div>
+
+                        {/* GAME LOG ENTRIES GO INTO HERE */}
+                        <div className="ms-2 me-2">
+                            {gameLog}
+                        </div>
+
+                    </div>
+
+                    <div class="col-md-9">
+                        <div class="products">
+                            {/* Player's Hand Heading Element */}
+
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h1>{cardsIconJSX} Dealer's Hand</h1>
+                                <h3>{asteRickSVG} Value: {dealerHandValue}</h3>
+                            </div>
+
+                            {/* Dealer's Actual Hand */}
+
+                            <div class="row g-0">
+                                {dealerHand}
+                            </div>
+
+                            <br />
+                            {outcomeJSX}
+                             <br />
+
+                            {/* Player's Hand Heading Element */}
+
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h1>{cardsIconJSX} My Hand</h1>
+                                <h3>{asteRickSVG} Value: {playerHandValue}</h3>
+                            </div>
+
+                            {/* Player's Actual Hand */}
+
+                            <div class="row g-0">
+                                {playerHand}
+                            </div>
+
+                            <br />
+
+                        </div>
+                    </div>
+                </div>
+            );
+
+            return(
+                UI_STRUCTURE(<p>It's the Dealer's turn...</p>, dealerTurnBody)
+            );
+
+        }
+
+
+
+    }
+
+
+
+
+
 
     //* ========== ========== ========== ========== ==========
     //* >> React UseEffects
@@ -198,99 +412,7 @@ const Game = () => {
 
     }, []); //! ON MOUNT
 
-
-
-    return (
-        <body>
-            <Navbar />
-            <main class="page catalog-page">
-                <section class="clean-block clean-catalog dark">
-                    <div class="container">
-
-                        {/* HEADING */}
-
-                        <div class="block-heading">
-                            <h2 class="text-info">Current Wager: {wager} $</h2>
-                            <p>It's currently YOUR turn, either HIT or CALL : {gameStatus}</p>
-                        </div>
-
-                        <div class="content">
-                            <div class="row">
-
-                                <div class="col-md-3">
-
-                                    <div class="d-none d-md-block">
-                                        <div class="filters">
-                                            <div class="filter-item">
-                                                <h2 className="text-secondary"> {logsSVG} Game Log:</h2>
-                                            </div>
-                                            <div class="filter-item"></div>
-                                        </div>
-                                    </div>
-
-                                    {/* GAME LOG ENTRIES GO INTO HERE */}
-                                    <div className="ms-2 me-2">
-                                        {gameLog}
-                                    </div>
-
-                                </div>
-
-                                <div class="col-md-9">
-                                    <div class="products">
-                                        {/* Player's Hand Heading Element */}
-
-                                        <div className="d-flex justify-content-between align-items-center">
-                                            <h1>{cardsIconJSX} Dealer's Hand</h1>
-                                            <h3>{asteRickSVG} Value: {dealerHandValue}</h3>
-                                        </div>
-
-                                        {/* Dealer's Actual Hand */}
-
-                                        <div class="row g-0">
-                                            {dealerHand}
-                                        </div>
-
-                                        <br /> <br />
-
-                                        {/* Player's Hand Heading Element */}
-
-                                        <div className="d-flex justify-content-between align-items-center">
-                                            <h1>{cardsIconJSX} My Hand</h1>
-                                            <h3>{asteRickSVG} Value: {playerHandValue}</h3>
-                                        </div>
-
-                                        {/* Player's Actual Hand */}
-
-                                        <div class="row g-0">
-                                            {playerHand}
-                                        </div>
-
-
-                                        {/* PLAYER'S ACTIONS */}
-
-                                        <div class="col-12 col-md-6 col-lg-4">
-                                            <div class="clean-product-item">
-                                                <div class="image"></div><button class="btn btn-primary" type="button"
-                                                    onClick={() => { preformAction("hit", handleHit); }}> HIT (Draw Gard) </button>
-                                            </div>
-                                        </div>
-                                        <div class="col">
-                                            <div class="clean-product-item">
-                                                <div class="image"></div><button class="btn btn-dark" type="button"
-                                                    onClick={() => { preformAction("stand", handleStand); }}> Stand</button>
-                                            </div>
-                                        </div>
-
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
-            <Footer />
-        </body>
-    )
+    return(RENDER_GAME_UI(gameStatus))
 }
 
 export default Game
