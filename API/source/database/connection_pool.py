@@ -12,7 +12,7 @@ DB_CONFIG = {
 
 # Creating the connection pool
 connection_pool = pooling.MySQLConnectionPool(pool_name="apipool",
-                                              pool_size=5,
+                                              pool_size=31,
                                               **DB_CONFIG)
 
 def get_conn():

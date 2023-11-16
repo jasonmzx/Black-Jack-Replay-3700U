@@ -225,9 +225,6 @@ def DB_GAME_active_game_switch_turns(player_id: int):
             """
             cursor.execute(update_active_hands, (game_id,))
 
-            #* 2. <> The Dealer's Play <>
-            #TODO
-
             #* 2. TODO: Mirror over Replay Hands
             #TODO
 
@@ -240,6 +237,9 @@ def DB_GAME_active_game_switch_turns(player_id: int):
             conn.rollback()
             print(f"Error: {err}")
             raise
+
+    #* 2. <> The Dealer's Play <>
+    DB_GAME_dealers_play(player_id)
 
     # Return success status
     return True
@@ -322,7 +322,7 @@ def GAME_UTIL_calculate_hand(hands, holder: int):
 
 def DB_GAME_perform_hit(USER_ID: int):
 
-    hands_object = DB_GAME_get_active_hands(USER_ID, False)
+    hands_object = DB_GAME_get_active_hands(USER_ID, False) #! NO OBFUSCATION
     hands = hands_object["hands"]
 
     #Player's Hand Value (Before Hit)
@@ -397,9 +397,63 @@ def DB_GAME_terminate_game(player_id: int, game_outcome: int):
     return True
 
 def DB_GAME_dealers_play(player_id: int):
+    
+    PRINT_BANNER("Dealer's Play")
+
     game_obj = DB_GAME_Is_player_in_game(player_id)
     game_id = game_obj["game_id"]
+
+    hands_object = DB_GAME_get_active_hands(player_id, False) #! NO OBFUSCATION
+    hands = hands_object["hands"]
+
+    PLAYER_hand_value = GAME_UTIL_calculate_hand(hands, 0) #* Value of Player's current hand
+    DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1) #* Value of Dealer's current hand
+
+    print("Dealer's Hand Value:")
+    print(DEALER_hand_value)
     
-#    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+    print("Player's Hand Value:")
+    print(PLAYER_hand_value)
+
+    while(True):
+        if DEALER_hand_value < 17: #Dealer Hit's the deck if his value is under 17
+            
+            pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_obj["game_uuid"], 1, 1) #Dealer is holder, and it's a shown card
+            pulled_card_value = pulled_card["card_value"]
+                    
+            #! >>>> ACE Check 
+            if pulled_card_value is None:
+                if player_hand_value <= 10:
+                    pulled_card_value = 11
+                else:
+                    pulled_card_value = 1
+
+            DEALER_hand_value += pulled_card_value
+        else:
+            break    
+
+    print("Done loop...")
+
+
+    #! Note: Player Busting is already asserted
+
+    if DEALER_hand_value == 21: #If Dealer get's a 21, Compare to the player's and see if Dealer wins, or Tie:
+
+        if PLAYER_hand_value == 21:
+            DB_GAME_terminate_game(player_id, 4) #* 21 Tie between Dealer & Player
+        elif PLAYER_hand_value < 21:
+            DB_GAME_terminate_game(player_id, 3) #* Dealer wins, if he gets 21 and the player gets lower
+        
+
+    if DEALER_hand_value < 21: #If player busts, Dealer AUTO wins
+        if DEALER_hand_value > PLAYER_hand_value:
+            DB_GAME_terminate_game(player_id, 3) #* Dealer wins, as his cards are higher
+        elif DEALER_hand_value < PLAYER_hand_value:
+            DB_GAME_terminate_game(player_id, 2) #* Player Wins
+        else:
+            DB_GAME_terminate_game(player_id, 4) #* regular Tie between Dealer & Player
+        
+    if DEALER_hand_value > 21:
+        DB_GAME_terminate_game(player_id, 2) #* Player Wins, as he didn't bust but the dealer did
 
     return
