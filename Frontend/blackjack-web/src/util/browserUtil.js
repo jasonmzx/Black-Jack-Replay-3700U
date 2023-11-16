@@ -35,8 +35,17 @@ export function activeGameLoggingAlgorithm(state, hands) {
             const visibleCards = getVisibleCards(hands, hand.holder, idx).map(card => getCardDescription(card)).join(", ")
             const totalValue = calculateTotalValue(hands, hand.holder, idx)
 
+            let cardValue
+            if (hand.card_value === null && (totalValue - 11) <= 10) {
+                cardValue = "11"
+            } else if (hand.card_value === null && (totalValue - 11) > 10) {
+                cardValue = "1"
+            } else {
+                cardValue = hand.card_value
+            }
+
             lg.push(
-                `${playerName} drew ${cardDescription} (Value: ${hand.card_value}) | ${playerName} cards: ${visibleCards} | Total value: ${totalValue}`
+                `${playerName} drew ${cardDescription} (Value: ${cardValue}) | ${playerName} cards: ${visibleCards} | Total value: ${totalValue}`
             )
         } else {
             lg.push(`Dealer drew an unknown card`)
@@ -52,7 +61,23 @@ function getCardDescription(card) {
 
 function calculateTotalValue(hands, holder, idx) {
     const playerCards = getVisibleCards(hands, holder, idx).slice(0, idx + 1)
-    return playerCards.reduce((total, card) => total + card.card_value, 0)
+    let total = 0
+    let hasAce = false
+
+    for(const card of playerCards) {
+        if (card.card_value === null) {
+            total += 11
+            hasAce = true
+        }
+
+        total += card.card_value
+    }
+
+    if (total > 21 && hasAce) {
+        total -= 10
+    }
+
+    return total
 }
 
 function getVisibleCards(hands, holder, idx) {
