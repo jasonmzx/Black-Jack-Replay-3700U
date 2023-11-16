@@ -45,7 +45,20 @@ export function activeGameLoggingAlgorithm(state, hands) {
             }
 
             lg.push(
-                `${playerName} drew ${cardDescription} (Value: ${cardValue}) | ${playerName} cards: ${visibleCards} | Total value: ${totalValue}`
+                <div>
+                    <span style={{ display: 'block' }}>
+                        {`${playerName} drew ${cardDescription} (Value: ${cardValue})`}
+                    </span>
+                    <br />
+                    <span style={{ display: 'block' }}>
+                        {`${playerName} cards: ${visibleCards}`}
+                    </span>
+                    <br />
+                    <span>
+                        <strong>{`${playerName} hand value: ${totalValue}`}</strong>
+                    </span>
+                    <br />
+                </div>
             )
         } else {
             lg.push(`Dealer drew an unknown card`)
