@@ -99,7 +99,7 @@ const Game = () => {
         for (const logStr of logStrs) {
             logDump.push(
                 <>
-                    <span className="bg-light">
+                    <span className="bg-light" style={{ padding: '5px', margin: '5px', display: 'block' }}>
                         {logStr}
                     </span>
                     <br />
