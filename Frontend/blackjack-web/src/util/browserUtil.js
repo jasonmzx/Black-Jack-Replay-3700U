@@ -31,13 +31,12 @@ export function activeGameLoggingAlgorithm(state, hands) {
         if (hand.shown) {
             const playerName = hand.holder === 0 ? "Player" : "Dealer"
 
-            const cardDescription = `${getCardDescription(hand)}`
-            const visibleCards = getVisibleCards(hands, hand.holder).map(card => getCardDescription(card)).join(", ")
-            const totalValue = calculateTotalValue(hands, hand.holder)
+            const cardDescription = getCardDescription(hand)
+            const visibleCards = getVisibleCards(hands, hand.holder, idx).map(card => getCardDescription(card)).join(", ")
+            const totalValue = calculateTotalValue(hands, hand.holder, idx)
 
             lg.push(
-                `${playerName} drew ${cardDescription}`
-                /* | ${playerName} cards: ${visibleCards} | Total value: ${totalValue} */
+                `${playerName} drew ${cardDescription} (Value: ${hand.card_value}) | ${playerName} cards: ${visibleCards} | Total value: ${totalValue}`
             )
         } else {
             lg.push(`Dealer drew an unknown card`)
@@ -48,16 +47,16 @@ export function activeGameLoggingAlgorithm(state, hands) {
 }
 
 function getCardDescription(card) {
-    return card.card_name ? `${card.card_name} of ${card.symbol_name} (Value: ${card.card_value})` : `${card.card_value} of ${card.symbol_name} (Value: ${card.card_value})`
+    return card.card_name ? `${card.card_name} of ${card.symbol_name}` : `${card.card_value} of ${card.symbol_name}`
 }
 
-function calculateTotalValue(hands, holder) {
-    const playerCards = getVisibleCards(hands, holder)
+function calculateTotalValue(hands, holder, idx) {
+    const playerCards = getVisibleCards(hands, holder, idx).slice(0, idx + 1)
     return playerCards.reduce((total, card) => total + card.card_value, 0)
 }
 
-function getVisibleCards(hands, holder) {
-    return hands.filter((hand) => hand.holder === holder && hand.shown)
+function getVisibleCards(hands, holder, idx) {
+    return hands.slice(0, idx + 1).filter((hand) => hand.holder === holder && hand.shown)
 }
 
 // --------------- SVG ICONS FOR FRONTEND -------------------
