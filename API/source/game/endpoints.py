@@ -9,6 +9,7 @@ from .models import InitGame, Credential
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
 from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands, DB_GAME_perform_hit
+from database.db_utility import DB_GAME_delete_active_game
 
 # Game Utility (Functionality abstractions for "main game" Application)
 from .game_utility import GAME_UTIL_calculate_hand
@@ -147,7 +148,7 @@ def active_hands(req: Credential):
     hands = DB_GAME_get_active_hands(user_record["user_id"], True) #Obfuscated Hands, as it's being sent to player
 
     if hands is None:
-         raise HTTPException(status_code=404, detail=str("Game not found...")) #Internal serv err
+         raise HTTPException(status_code=404, detail=str("Game not found..."))
 
     return hands
 
@@ -166,7 +167,6 @@ def player_call(req: Credential):
     print("/stand, User ID: "+str(user_record["user_id"]))
 
     DB_GAME_active_game_switch_turns(user_record["user_id"])
-
     return
     
 
@@ -190,10 +190,25 @@ def player_hit(req: Credential):
         DB_GAME_mirror_replay_hands(in_game["game_uuid"])
 
     print("/call, User ID: "+str(USER_ID))
-
-    # Hit Action | Pulled card
     return
     
+
+@router.post("/leave")
+def player_leave_game(req: Credential):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    deletion_status = DB_GAME_delete_active_game(user_record["user_id"])
+
+    if deletion_status is False:
+        raise HTTPException(status_code=404, detail="Game can't be deleted...")
+    return
+
 
 @router.post("/whoami")
 def whoami(req: Credential):

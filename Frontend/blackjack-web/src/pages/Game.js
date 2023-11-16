@@ -288,7 +288,7 @@ const Game = () => {
                 </div>
             );
 
-            return(
+            return (
                 UI_STRUCTURE(<p>It's your turn! HIT or STAND</p>, playerTurnBody)
             );
         }
@@ -302,11 +302,14 @@ const Game = () => {
                         <h4 className="alert-heading">Congratulations! You've Won </h4>
                         <p>You've won!</p>
                     </div>
-                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
                 </div>
             );
         }
-        
+
         if (state === 3) {
             outcomeJSX = (
                 <div className="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
@@ -314,12 +317,30 @@ const Game = () => {
                         <h4 className="alert-heading">Oh no! You've lost...</h4>
                         <p>Better luck next time!</p>
                     </div>
-                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
                 </div>
             );
         }
-        
-        if(state === 1 || state === 2 || state === 3 || state === 4){
+
+        if (state === 4) {
+            outcomeJSX = (
+                <div className="alert alert-info d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <h4 className="alert-heading">Tie!</h4>
+                        <p>You've tied the dealer! Neither of you lost or win any money...</p>
+                    </div>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
+                </div>
+            );
+        }
+
+        if (state === 1 || state === 2 || state === 3 || state === 4) {
             const dealerTurnBody = (
                 <div class="row">
 
@@ -358,7 +379,7 @@ const Game = () => {
 
                             <br />
                             {outcomeJSX}
-                             <br />
+                            <br />
 
                             {/* Player's Hand Heading Element */}
 
@@ -380,7 +401,7 @@ const Game = () => {
                 </div>
             );
 
-            return(
+            return (
                 UI_STRUCTURE(<p>It's the Dealer's turn...</p>, dealerTurnBody)
             );
 
@@ -412,7 +433,7 @@ const Game = () => {
 
     }, []); //! ON MOUNT
 
-    return(RENDER_GAME_UI(gameStatus))
+    return (RENDER_GAME_UI(gameStatus))
 }
 
 export default Game

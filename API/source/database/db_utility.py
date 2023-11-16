@@ -176,8 +176,8 @@ WHERE ah.game_id = %s
             active_hands = cursor.fetchall()
             formatted_hands = format_active_hands(active_hands, obfuscate)  
 
-            Player_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 0) #Get Player Hand Value
-            Dealer_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 1) #Get Dealer Hand Value
+            Player_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 0, None) #Get Player Hand Value
+            Dealer_hand_value = GAME_UTIL_calculate_hand(formatted_hands["hands"], 1, None) #Get Dealer Hand Value
 
             formatted_hands["player_hand_value"] = Player_hand_value
             formatted_hands["dealer_hand_value"] = Dealer_hand_value
@@ -296,19 +296,28 @@ def DB_GAME_Is_player_in_game(player_id: int):
 #? 3: Dealer Wins
 #? 4: Tie
 
-def GAME_UTIL_calculate_hand(hands, holder: int):
+def GAME_UTIL_calculate_hand(hands, holder: int, pulled_card):
 
     ACTOR_HAND_VAL = 0
+    PULLED_ACE_FOUND = False
 
-    #* Pass 1, Append all None, Aces onto value
+    #* ----- Pass 0, Add Pulled card's value immediate, and do a pre-liminary ace check here!
+    if pulled_card is not None:
+        pulled_card_value = pulled_card["card_value"]
 
+        #! >>>> Preliminary ACE Check 
+        if pulled_card_value is None:
+            PULLED_ACE_FOUND = True
+        else:
+            ACTOR_HAND_VAL += pulled_card_value
+
+    #* ----- Pass 1, Append all None, Aces onto value
     for card in hands:
         card_value = card["card_value"]
         if card_value is not None and card["holder"] == holder:
             ACTOR_HAND_VAL += card_value 
 
-    #* Pass 2, After total non-ace deck computed, see how Ace's value can fit
-
+    #* ----- Pass 2, After total non-ace deck computed, see how Ace's value can fit
     for card in hands:
         card_value = card["card_value"]
         if card_value is None and card["holder"] == holder: #Ace Case
@@ -318,6 +327,14 @@ def GAME_UTIL_calculate_hand(hands, holder: int):
                 ACTOR_HAND_VAL += 11
             else:
                 ACTOR_HAND_VAL += 1
+
+    #* ----- Pass 3 > If an Ace was pulled, we purposefully add all Valued cards, and add the Ace Accordingly
+    if PULLED_ACE_FOUND == True:
+        if ACTOR_HAND_VAL <= 10:
+            ACTOR_HAND_VAL += 11
+        else:
+            ACTOR_HAND_VAL += 1
+
     return ACTOR_HAND_VAL
 
 def DB_GAME_perform_hit(USER_ID: int):
@@ -325,27 +342,17 @@ def DB_GAME_perform_hit(USER_ID: int):
     hands_object = DB_GAME_get_active_hands(USER_ID, False) #! NO OBFUSCATION
     hands = hands_object["hands"]
 
-    #Player's Hand Value (Before Hit)
-    player_hand_value = GAME_UTIL_calculate_hand(hands, 0)
-
     #Player "Hits" the deck
     pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(hands_object["game_id"], hands_object["game_uuid"], 0, 1)
-    pulled_card_value = pulled_card["card_value"]
-
-    #! >>>> ACE Check 
-    if pulled_card_value is None:
-        if player_hand_value <= 10:
-            pulled_card_value = 11
-        else:
-            pulled_card_value = 1
-
-    #* Player's Hand After the HIT! 
-    Player_hand_after_hit = player_hand_value + pulled_card_value
+    
+    #Player's Hand Value (After Hit)
+    Player_hand_after_hit = GAME_UTIL_calculate_hand(hands, 0, pulled_card)
 
     if Player_hand_after_hit == 21: #If player get's a 21, automatically end his turn, and let the Dealer proceed
         DB_GAME_active_game_switch_turns(USER_ID)
     if Player_hand_after_hit > 21: #If player busts, Dealer AUTO wins
         DB_GAME_terminate_game(USER_ID, 3)
+    
     print("#### HIT! , Pulled Card ######")
     print(pulled_card)
 
@@ -396,8 +403,54 @@ def DB_GAME_terminate_game(player_id: int, game_outcome: int):
     # Return True if everything was successful
     return True
 
+
+def DB_GAME_delete_active_game(player_id: int):
+    # Retrieve game_id of the player's active game
+    game_obj = DB_GAME_Is_player_in_game(player_id)
+    game_id = game_obj["game_id"]
+
+    if game_obj["state"] == 0 or game_obj["state"] == 1:
+        return False 
+
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+        try:
+            conn.start_transaction()
+
+        #* ---------- Active Game Deletion -------------------
+
+            # Deleting entries in game_decks associated with the game
+            print("Deleting entries from game_decks")
+            stmt = "DELETE FROM game_decks WHERE game_id = %s"
+            cursor.execute(stmt, (game_id,))
+
+            # Deleting active hands associated with the game
+            print("Deleting active hands")
+            stmt = "DELETE FROM active_hands WHERE game_id = %s"
+            cursor.execute(stmt, (game_id,))
+
+            # Deleting the active game
+            print("Deleting active game")
+            stmt = "DELETE FROM active_games WHERE game_id = %s"
+            cursor.execute(stmt, (game_id,))
+
+        #* ---------- Replay Game Adjustment -------------------
+
+        #TODO
+
+            # Commit the transaction
+            conn.commit()
+
+        except Exception as err:
+            # Rollback the transaction in case of any exception
+            conn.rollback()
+            print(f"Error: {err}")
+            return False  # Return False if there was an error
+
+    # Return True if everything was successful
+    return True
+
+
 def DB_GAME_dealers_play(player_id: int):
-    
     PRINT_BANNER("Dealer's Play")
 
     game_obj = DB_GAME_Is_player_in_game(player_id)
@@ -406,8 +459,17 @@ def DB_GAME_dealers_play(player_id: int):
     hands_object = DB_GAME_get_active_hands(player_id, False) #! NO OBFUSCATION
     hands = hands_object["hands"]
 
-    PLAYER_hand_value = GAME_UTIL_calculate_hand(hands, 0) #* Value of Player's current hand
-    DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1) #* Value of Dealer's current hand
+    PLAYER_hand_value = GAME_UTIL_calculate_hand(hands, 0, None) #* Value of Player's current hand
+    DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, None) #* Value of Dealer's current hand
+
+    while(True):
+        if DEALER_hand_value < 17: #Dealer Hit's the deck if his value is under 17
+            
+            pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_obj["game_uuid"], 1, 1) #Dealer is holder, and it's a shown card
+            DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, pulled_card) #* New value of Dealer's current hand
+
+        else:
+            break    
 
     print("Dealer's Hand Value:")
     print(DEALER_hand_value)
@@ -415,29 +477,10 @@ def DB_GAME_dealers_play(player_id: int):
     print("Player's Hand Value:")
     print(PLAYER_hand_value)
 
-    while(True):
-        if DEALER_hand_value < 17: #Dealer Hit's the deck if his value is under 17
-            
-            pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_obj["game_uuid"], 1, 1) #Dealer is holder, and it's a shown card
-            pulled_card_value = pulled_card["card_value"]
-                    
-            #! >>>> ACE Check 
-            if pulled_card_value is None:
-                if player_hand_value <= 10:
-                    pulled_card_value = 11
-                else:
-                    pulled_card_value = 1
-
-            DEALER_hand_value += pulled_card_value
-        else:
-            break    
-
-    print("Done loop...")
-
-
+    print("#### Outcome Checking ###")
     #! Note: Player Busting is already asserted
 
-    if DEALER_hand_value == 21: #If Dealer get's a 21, Compare to the player's and see if Dealer wins, or Tie:
+    if DEALER_hand_value == 21: #? If Dealer get's a 21, Compare to the player's and see if Dealer wins, or Tie:
 
         if PLAYER_hand_value == 21:
             DB_GAME_terminate_game(player_id, 4) #* 21 Tie between Dealer & Player
@@ -445,7 +488,8 @@ def DB_GAME_dealers_play(player_id: int):
             DB_GAME_terminate_game(player_id, 3) #* Dealer wins, if he gets 21 and the player gets lower
         
 
-    if DEALER_hand_value < 21: #If player busts, Dealer AUTO wins
+    if DEALER_hand_value < 21: #? Dealer doesn't bust, but doesn't get 21
+        
         if DEALER_hand_value > PLAYER_hand_value:
             DB_GAME_terminate_game(player_id, 3) #* Dealer wins, as his cards are higher
         elif DEALER_hand_value < PLAYER_hand_value:
@@ -454,6 +498,7 @@ def DB_GAME_dealers_play(player_id: int):
             DB_GAME_terminate_game(player_id, 4) #* regular Tie between Dealer & Player
         
     if DEALER_hand_value > 21:
+        
         DB_GAME_terminate_game(player_id, 2) #* Player Wins, as he didn't bust but the dealer did
 
     return
