@@ -116,6 +116,7 @@ CREATE TABLE replay_hands (
 	card_id INT NOT NULL, 
 	shown BIT, -- Acts as a boolean (0 or 1)
 	holder BIT, 
+	step_state INT,
 
 	PRIMARY KEY (game_step),
 	FOREIGN KEY(r_game_id) REFERENCES replay_games(r_game_id),

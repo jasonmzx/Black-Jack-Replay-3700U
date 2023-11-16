@@ -2,14 +2,14 @@ def GAME_UTIL_calculate_hand(hands, holder: int):
 
     ACTOR_HAND_VAL = 0
 
-    # Pass 1, Append all None, Aces onto value
+    #* Pass 1, Append all None, Aces onto value
 
     for card in hands:
         card_value = card["card_value"]
         if card_value is not None and card["holder"] == holder:
             ACTOR_HAND_VAL += card_value 
 
-    #Pass 2, After total non-ace deck computed, see how Ace's value can fit
+    #* Pass 2, After total non-ace deck computed, see how Ace's value can fit
 
     for card in hands:
         card_value = card["card_value"]

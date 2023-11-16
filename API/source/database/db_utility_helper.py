@@ -1,4 +1,3 @@
-
 def format_active_hands(payload, obfuscate):
     game_id = None
     game_uuid = None
