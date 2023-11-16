@@ -3,13 +3,13 @@ import random
 import uuid
 
 from database import connection_pool
-from .models import InitGame, Credential
+from .models import InitGame, Credential, ReplayGame
 
 # Database Utility 
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
 from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands, DB_GAME_perform_hit
-from database.db_utility import DB_GAME_delete_active_game
+from database.db_utility import DB_GAME_delete_active_game, DB_GAME_get_replay_hands
 
 # Game Utility (Functionality abstractions for "main game" Application)
 from .game_utility import GAME_UTIL_calculate_hand
@@ -209,6 +209,13 @@ def player_leave_game(req: Credential):
         raise HTTPException(status_code=404, detail="Game can't be deleted...")
     return
 
+@router.post("/replay/hands")
+def replay_hands(req: ReplayGame):
+
+    print(req.uuid)
+    hands = DB_GAME_get_replay_hands(req.uuid, True)
+
+    return hands
 
 @router.post("/whoami")
 def whoami(req: Credential):

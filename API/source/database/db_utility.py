@@ -1,5 +1,5 @@
 from . import connection_pool
-from .db_utility_helper import format_active_hands
+from .db_utility_helper import format_active_hands, format_replay_hands
 
 def DB_get_user_by_cookie(cookie: str):
     try:
@@ -194,6 +194,41 @@ WHERE ah.game_id = %s
             raise err
 
 
+def DB_GAME_get_replay_hands(game_uuid: str, obfuscate: bool):
+
+    # With closes connection pool and cursor automatically!
+    with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+
+        # Begin transaction
+        conn.start_transaction()
+
+        try:
+            stmt = """
+SELECT rh.card_id, rh.shown, rh.holder, rh.step_state,
+       cr.symbol_type, est.symbol_name, 
+       cr.card_type, cr.card_value, ect.card_name,  
+       rg.r_game_uuid, rg.state, rg.player_wager
+FROM replay_hands rh
+INNER JOIN card_registry cr ON rh.card_id = cr.card_id
+INNER JOIN ENUM_card_type ect ON cr.card_type = ect.card_type
+INNER JOIN ENUM_symbol_type est ON cr.symbol_type = est.symbol_type
+INNER JOIN replay_games rg ON rh.r_game_id = rg.r_game_id
+WHERE rg.r_game_uuid = %s
+            """
+            val = (game_uuid,)
+            cursor.execute(stmt, val)
+
+            replay_hands = cursor.fetchall()
+            formatted_hands = format_replay_hands(replay_hands, obfuscate)
+
+            conn.commit()
+
+            return formatted_hands
+
+        except Exception as err:
+            conn.rollback()
+            print(f"Error: {err}")
+            raise err
 
 # Switches turns of a given player id's active game from Player to Dealer's turn!
 
@@ -502,3 +537,4 @@ def DB_GAME_dealers_play(player_id: int):
         DB_GAME_terminate_game(player_id, 2) #* Player Wins, as he didn't bust but the dealer did
 
     return
+
