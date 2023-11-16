@@ -25,18 +25,37 @@ export function findCookie(cookieName, cookies) {
 }
 
 export function activeGameLoggingAlgorithm(state, hands) {
-
-    let lg = [];
+    let lg = []
 
     for(const [idx,hand] of hands.entries()) {
-        lg.push(
-            <>
-                {hand["holder"] ? "Dealer" : "Player"} drew a {hand["card_name"]} of {hand["symbol_name"]} | VALUE: {hand["card_value"]}
-            </>
-        );
+        if (hand.shown) {
+            const playerName = hand.holder === 0 ? "Player" : "Dealer"
+
+            const cardDescription = `${getCardDescription(hand)}`
+            const visibleCards = getVisibleCards(hands, hand.holder).map(card => getCardDescription(card)).join(", ")
+            const totalValue = calculateTotalValue(hands, hand.holder)
+
+            lg.push(
+                `${playerName} drew ${cardDescription}`
+                /* | ${playerName} cards: ${visibleCards} | Total value: ${totalValue} */
+            )
+        }
     }
 
-    return lg;
+    return lg
+}
+
+function getCardDescription(card) {
+    return card.card_name ? `${card.card_name} of ${card.symbol_name} (Value: ${card.card_value})` : `${card.card_value} of ${card.symbol_name} (Value: ${card.card_value})`
+}
+
+function calculateTotalValue(hands, holder) {
+    const playerCards = getVisibleCards(hands, holder)
+    return playerCards.reduce((total, card) => total + card.card_value, 0)
+}
+
+function getVisibleCards(hands, holder) {
+    return hands.filter((hand) => hand.holder === holder && hand.shown)
 }
 
 // --------------- SVG ICONS FOR FRONTEND -------------------
