@@ -73,3 +73,11 @@ LINUX ONLY: `pip list | grep -E "uvicorn|fastapi|mysql-connector-python"`
 Running API
 
 `uvicorn main:app --reload`
+
+---
+
+## Frontend Docs
+
+```
+sudo npm install -g create-react-app
+```
