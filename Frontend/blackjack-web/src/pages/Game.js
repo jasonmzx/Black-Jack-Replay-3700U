@@ -100,7 +100,6 @@ const Game = () => {
         setGameLog(logDump);
     }
 
-
     //* ========== ========== ========== ========== ==========
     //* >> API Handlers
     //* ========== ========== ========== ========== ==========
@@ -347,7 +346,9 @@ const Game = () => {
 
                         {/* GAME LOG ENTRIES GO INTO HERE */}
                         <div className="ms-2 me-2">
-                            {gameLog}
+                            <div style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
+                                {gameLog}
+                            </div>
                         </div>
 
                     </div>
