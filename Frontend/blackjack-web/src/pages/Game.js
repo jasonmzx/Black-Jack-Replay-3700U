@@ -397,17 +397,8 @@ const Game = () => {
             return (
                 UI_STRUCTURE(<p>It's the Dealer's turn...</p>, dealerTurnBody)
             );
-
         }
-
-
-
     }
-
-
-
-
-
 
     //* ========== ========== ========== ========== ==========
     //* >> React UseEffects

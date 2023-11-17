@@ -97,6 +97,27 @@ function getVisibleCards(hands, holder, idx) {
     return hands.slice(0, idx + 1).filter((hand) => hand.holder === holder && hand.shown)
 }
 
+export function formatDate(inputDate) {
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const dateObj = new Date(inputDate);
+    
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    const hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes();
+
+    const suffix = day > 10 && day < 20 ? "th" : ["th", "st", "nd", "rd", "th"][day % 10];
+
+    const formattedDate = `${month} ${day}${suffix} ${year} at ${hours}:${minutes}`;
+
+    return formattedDate;
+}
+
 // --------------- SVG ICONS FOR FRONTEND -------------------
 
 

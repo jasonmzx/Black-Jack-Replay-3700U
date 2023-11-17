@@ -438,7 +438,6 @@ def DB_GAME_terminate_game(player_id: int, game_outcome: int):
     # Return True if everything was successful
     return True
 
-
 def DB_GAME_delete_active_game(player_id: int):
     # Retrieve game_id of the player's active game
     game_obj = DB_GAME_Is_player_in_game(player_id)
@@ -451,7 +450,20 @@ def DB_GAME_delete_active_game(player_id: int):
         try:
             conn.start_transaction()
 
-        #* ---------- Active Game Deletion -------------------
+            # ---------- Active Game Deletion -------------------
+
+            # Get the necessary data from active_games
+            stmt = "SELECT * FROM active_games WHERE game_id = %s"
+            cursor.execute(stmt, (game_id,))
+            active_game_data = cursor.fetchone()
+
+            # Updating corresponding replay_game record
+            stmt = """
+                UPDATE replay_games
+                SET state = %s, game_end_date = NOW()
+                WHERE r_game_uuid = %s
+            """
+            cursor.execute(stmt, (active_game_data["state"], active_game_data["game_uuid"]))
 
             # Deleting entries in game_decks associated with the game
             print("Deleting entries from game_decks")
@@ -467,10 +479,6 @@ def DB_GAME_delete_active_game(player_id: int):
             print("Deleting active game")
             stmt = "DELETE FROM active_games WHERE game_id = %s"
             cursor.execute(stmt, (game_id,))
-
-        #* ---------- Replay Game Adjustment -------------------
-
-        #TODO
 
             # Commit the transaction
             conn.commit()
