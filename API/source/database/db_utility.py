@@ -525,7 +525,7 @@ def DB_GAME_dealers_play(player_id: int):
             DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, pulled_card) #* New value of Dealer's current hand
 
             print(f"iter {i}, Dealer's hand: {DEALER_hand_value}")
-
+            DB_GAME_mirror_replay_hands(game_obj["game_uuid"])
         else:
             break    
 
