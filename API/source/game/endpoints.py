@@ -241,6 +241,31 @@ def replay_hands(req: ReplayGame):
 
 @router.post("/replay/games")
 def get_replay_games(req: Credential):
-    #TODO:
-    return
+    try:
+        # Assuming DB_get_user_by_cookie is a function to get the user based on the cookie
+        user_record = DB_get_user_by_cookie(req.cookie)
+        if user_record is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_id = user_record['user_id']
+
+        # Establish database connection and fetch data
+        with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+            # Prepare the SQL query to fetch replay games for the given user
+            query = """
+                SELECT *
+                FROM replay_games rg
+                WHERE rg.player = %s
+            """
+            cursor.execute(query, (user_id,))
+
+            # Fetch all records
+            replay_games = cursor.fetchall()
+
+        return replay_games
+
+    except Exception as err:
+        print(f"Error: {err}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 

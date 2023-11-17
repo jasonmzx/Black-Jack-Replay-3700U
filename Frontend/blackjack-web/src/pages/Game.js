@@ -221,7 +221,9 @@ const Game = () => {
 
                         {/* GAME LOG ENTRIES GO INTO HERE */}
                         <div className="ms-2 me-2">
+                        <div style={{ maxHeight: '1000px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
                             {gameLog}
+                            </div>
                         </div>
 
                     </div>
@@ -346,7 +348,7 @@ const Game = () => {
 
                         {/* GAME LOG ENTRIES GO INTO HERE */}
                         <div className="ms-2 me-2">
-                            <div style={{ maxHeight: '500px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
+                            <div style={{ maxHeight: '1000px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
                                 {gameLog}
                             </div>
                         </div>

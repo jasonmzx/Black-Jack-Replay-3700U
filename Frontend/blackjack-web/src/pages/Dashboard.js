@@ -3,6 +3,7 @@ import React from 'react'
 //* Static Imports
 import "../static/bootstrap.min.css"
 import { findCookie } from '../util/browserUtil'
+import { API_get_replay_game } from '../util/API'
 
 //* Component Imports 
 import Footer from '../components/Footer'
@@ -39,6 +40,10 @@ const Dashboard = () => {
   }, []); //! ON MOUNT
 
 
+  const buildReplayEntry = () => {
+    
+  }
+
   //* ========== ========== ========== ========== ==========
   //* >> Return Statement
   //* ========== ========== ========== ========== ==========
@@ -51,8 +56,8 @@ const Dashboard = () => {
             <div className="container">
                 <div className="block-heading">
                     <h2 className="text-info">Blackjack Dashboard</h2>
-                    <p>Welcome back, </p>
-                    <a className="btn btn-primary" href="/game/create">Let's play some Blackjack!</a>
+                    <p>Welcome back, let's play some BlackJack ! </p>
+                    <a className="btn btn-primary" href="/game/create">Enter Game</a>
                 </div>
                 <div className="block-content">
                     <div className="text-start clean-blog-post">

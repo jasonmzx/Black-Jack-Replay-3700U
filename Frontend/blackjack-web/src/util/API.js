@@ -102,6 +102,24 @@ export async function API_get_replay(cookie, uuid, callback) {
   return;
 }
 
+export async function API_get_replay_game(cookie, callback) {
+
+  const RESPONSE = await fetch(ENDPOINT + 'game/replay/games', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+          "cookie": cookie
+        })
+  });
+
+  let ResponseJSON = await RESPONSE.json();
+  let ResponseStatus = RESPONSE.status;
+
+  callback(ResponseJSON, ResponseStatus);
+  return;
+}
+
+
 //! --------- Game Action Request ----------------
 
 export async function API_action(cookie, action, callback) {
