@@ -88,7 +88,9 @@ def DB_GAME_mirror_replay_hands(game_uuid: str):
 
 #? I apologize in advanced for the Java-esque function names lol
 def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, game_uuid: str, holder: bool, shown: bool):
-    
+
+    PRINT_BANNER("PULL CARD OFF DECK INTO ACTIVE HAND: ")
+
     pulled_card = None
 
     # With closes connection pool and cursor automatically!
@@ -112,7 +114,8 @@ def DB_GAME_pull_card_off_deck_into_active_hand(game_id: int, game_uuid: str, ho
             cursor.execute(stmt, val)
 
             pulled_card = cursor.fetchone()
-            
+            print(pulled_card)
+
             if pulled_card is None:
                 raise Exception("Deck is empty...")
 
@@ -505,18 +508,23 @@ def DB_GAME_dealers_play(player_id: int):
     PLAYER_hand_value = GAME_UTIL_calculate_hand(hands, 0, None) #* Value of Player's current hand
     DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, None) #* Value of Dealer's current hand
 
+    print("INITTT;;; Dealer's Hand Value:")
+    print(DEALER_hand_value)
+
+    i = 0
+
     while(True):
         if DEALER_hand_value < 17: #Dealer Hit's the deck if his value is under 17
-
+            i += 1
             #Refresh Dealer's Hand Value (if this loop iterates more than once, this GOTTA be done)
-            DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, None) #* Value of Dealer's current hand
-
+            #DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, None) #* Value of Dealer's current hand
+            hands_object = DB_GAME_get_active_hands(player_id, False) #! NO OBFUSCATION
+            hands = hands_object["hands"]        
 
             pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_obj["game_uuid"], 1, 1) #Dealer is holder, and it's a shown card
             DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, pulled_card) #* New value of Dealer's current hand
 
-            #* Mirror Action on Replay Hands:
-            #DB_GAME_mirror_replay_hands(game_obj["game_uuid"])
+            print(f"iter {i}, Dealer's hand: {DEALER_hand_value}")
 
         else:
             break    
