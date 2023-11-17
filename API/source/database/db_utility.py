@@ -507,12 +507,21 @@ def DB_GAME_dealers_play(player_id: int):
 
     while(True):
         if DEALER_hand_value < 17: #Dealer Hit's the deck if his value is under 17
-            
+
+            #Refresh Dealer's Hand Value (if this loop iterates more than once, this GOTTA be done)
+            DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, None) #* Value of Dealer's current hand
+
+
             pulled_card = DB_GAME_pull_card_off_deck_into_active_hand(game_id, game_obj["game_uuid"], 1, 1) #Dealer is holder, and it's a shown card
             DEALER_hand_value = GAME_UTIL_calculate_hand(hands, 1, pulled_card) #* New value of Dealer's current hand
 
+            #* Mirror Action on Replay Hands:
+            #DB_GAME_mirror_replay_hands(game_obj["game_uuid"])
+
         else:
             break    
+
+    #DB_GAME_mirror_replay_hands(game_obj["game_uuid"])
 
     print("Dealer's Hand Value:")
     print(DEALER_hand_value)

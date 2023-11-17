@@ -163,9 +163,16 @@ def player_call(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
-    print("/stand, User ID: "+str(user_record["user_id"]))
+    #* Assertion for Active Game, Preform Dealer Turn Switch & Mirroring of hands for Replay 
+    USER_ID = user_record["user_id"]
+    in_game = DB_GAME_Is_player_in_game(USER_ID)
 
-    DB_GAME_active_game_switch_turns(user_record["user_id"])
+    if in_game is not False:
+
+        DB_GAME_active_game_switch_turns(USER_ID)
+        DB_GAME_mirror_replay_hands(in_game["game_uuid"])
+
+    print("/stand, User ID: "+str(user_record["user_id"]))
     return
     
 
@@ -179,7 +186,7 @@ def player_hit(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
-    # 
+    #* Assertion for Active Game, Preform Player hit & Mirroring of hands for Replay 
     USER_ID = user_record["user_id"]
     in_game = DB_GAME_Is_player_in_game(USER_ID)
 
