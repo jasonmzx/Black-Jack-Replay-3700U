@@ -36,6 +36,14 @@ const tupleRenderHand = (hands_payload) => {
 
 //* ---------- REPLAY ALGORITHM ------------------
 
+//! Replay Dual-State Context Descriptor | RDSCD algorithm
+const RDSCD = (hands_t, hands_t1) => {
+    if(!hands_t) {
+        return ''; //Return empty
+    }
+} 
+
+
 export const replayRendererAlgorithm = (hands) => {
 
 
@@ -49,7 +57,10 @@ export const replayRendererAlgorithm = (hands) => {
 
 
     //* This needs to be nested in `replayRenderAlgorithm` as it shares THE fn.'s state    
-    const bb_FORMAT_and_PUSH = (block) => {
+    const bb_FORMAT_and_PUSH = (block_tm1, block) => {
+
+        //* Call Replay Dual-State Context Descriptor | RDSCD algorithm
+        RDSCD(block_tm1, block);
 
         const tup = tupleRenderHand(block);
 
@@ -57,7 +68,10 @@ export const replayRendererAlgorithm = (hands) => {
         const dealerHandJSX = tup[1];
 
         //! might be a better way?
-        console.log("BLOCK 0")
+        console.log("BLOCK")
+        console.log(block_tm1);
+        console.log("BLOCK T1")
+        console.log(block);
 
         const blockState = block[0]["step_state"];
 
@@ -76,17 +90,16 @@ export const replayRendererAlgorithm = (hands) => {
                 StepTitle = "You Lost:";
                 current_container_css = "alert alert-danger";
             } else if (blockState === 4) {
-                StepTitle = "You tied the dealer";
+                StepTitle = "You Tied with the Dealer:";
                 current_container_css = "alert alert-info";
             }
         }
         //Set Temporal state:
         temporal_replay_state = blockState;
 
-
         blockBuffer.push(
             <>
-                <div className={current_container_css}>
+                <div className={current_container_css +" container border-dark"}>
                     <div className="row">
                         <h2>{StepTitle}</h2>
                         <hr></hr>
@@ -116,11 +129,14 @@ export const replayRendererAlgorithm = (hands) => {
     let block_count = 0; //Offset Counter for Block Partition
     let flat_block_index = 4; //Current index of flat Hands array
 
+    let blockCache = [];
+
     for (const [index, hand] of hands.entries()) {
 
         if (index >= flat_block_index) {
             //Append Block to Buffer, and clear it for next use:
-            bb_FORMAT_and_PUSH(blockJSX);
+            bb_FORMAT_and_PUSH(blockCache[blockCache.length-1], blockJSX);
+            blockCache.push(blockJSX)
             blockJSX = [];
             block_count++;
             flat_block_index += BLOCK_SIZE + block_count;
@@ -128,7 +144,7 @@ export const replayRendererAlgorithm = (hands) => {
         blockJSX.push(hand);
     }
     //* Append Remainder on the back of block buf.
-    bb_FORMAT_and_PUSH(blockJSX);
+    bb_FORMAT_and_PUSH(blockCache[blockCache.length-1],blockJSX);
 
     return (
         <div class="row">

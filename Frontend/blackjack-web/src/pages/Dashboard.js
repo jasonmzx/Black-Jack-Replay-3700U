@@ -137,7 +137,7 @@ const Dashboard = () => {
                             <a className="btn btn-primary" href="/game/create">Enter Game</a>
                         </div>
                         <div className="block-content">
-                            {replayGames}
+                            {replayGames.length !== 0 ? replayGames : <h2 className="text-secondary text-center">You haven't played any game(s) of blackjack yet!</h2>}
                         </div>
                     </div>
                 </section>
