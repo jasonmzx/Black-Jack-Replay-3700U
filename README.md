@@ -51,7 +51,7 @@ Anaconda Install, which is a Python Distribution and Package Management Tool *(E
 
 PIP *(Python Original Distribution)*:
 
-1. Make sure you're in `./API` directory
+1. Make sure you are in `./API` directory
 
 2. `python3 -m venv blackjack-VENV`
 
