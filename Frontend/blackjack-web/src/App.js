@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import Login from './pages/Login';
 import Game from './pages/Game';
 import GameCreation from './pages/GameCreation';
+import ReplayGame from './pages/ReplayGame';
 
 function App() {
   return (
@@ -20,6 +21,9 @@ function App() {
 
       <Route path="/game" element={<Game />}></Route>
       <Route path="/game/create" element={<GameCreation />}></Route>
+
+      {/* Route with gameId as a parameter */}
+      <Route path="/replay/:gameUUID" element={<ReplayGame />} />
 
     </Routes>
   </Router>

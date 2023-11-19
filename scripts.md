@@ -100,7 +100,7 @@ CREATE TABLE replay_games (
 	state INT,
 	player INT NOT NULL,
 	player_wager BIGINT NOT NULL,
-	game_end_date DATE,
+	game_end_date DATETIME,
 	
 	PRIMARY KEY (r_game_id),
 	FOREIGN KEY (player) REFERENCES users(user_id)

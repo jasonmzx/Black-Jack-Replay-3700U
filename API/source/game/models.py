@@ -5,3 +5,6 @@ class Credential(BaseModel):
 
 class InitGame(Credential):
     wager: int 
+
+class ReplayGame(Credential):
+    uuid: str

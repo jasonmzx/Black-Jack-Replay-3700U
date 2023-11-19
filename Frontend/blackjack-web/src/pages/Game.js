@@ -1,8 +1,11 @@
 import React from 'react'
 
+//* Source React Code Imports
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import CardRender from '../components/CardRender';
+
+import { cardEntryWrapper } from '../util/jsxHelper';
 
 //* Redux Integration
 import { useSelector, useDispatch } from 'react-redux';
@@ -57,19 +60,6 @@ const Game = () => {
     const [playerHandValue, setPlayerHandVal] = React.useState("Loading...");
     const [dealerHandValue, setDealerHandVal] = React.useState("Loading...");
 
-    const cardEntryWrapper = (hand) => {
-        return <div class="col-12 col-sm-6 col-md-4 col-lg-2">
-            <CardRender shown={hand["shown"]}
-                card_name={hand["card_name"]}
-                card_type={hand["card_type"]}
-                symbol_name={hand["symbol_name"]}
-                symbol_type={hand["symbol_type"]}
-                card_id={hand["card_id"]}
-                card_value={hand["card_value"]}
-            />
-        </div>
-    }
-
     const RenderHand = (hands_payload) => {
 
         let playerHandDump = [];
@@ -99,7 +89,7 @@ const Game = () => {
         for (const logStr of logStrs) {
             logDump.push(
                 <>
-                    <span className="bg-light">
+                    <span className="bg-light" style={{ padding: '5px', margin: '5px', display: 'block' }}>
                         {logStr}
                     </span>
                     <br />
@@ -109,7 +99,6 @@ const Game = () => {
 
         setGameLog(logDump);
     }
-
 
     //* ========== ========== ========== ========== ==========
     //* >> API Handlers
@@ -232,7 +221,9 @@ const Game = () => {
 
                         {/* GAME LOG ENTRIES GO INTO HERE */}
                         <div className="ms-2 me-2">
+                        <div style={{ maxHeight: '1000px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
                             {gameLog}
+                            </div>
                         </div>
 
                     </div>
@@ -288,7 +279,7 @@ const Game = () => {
                 </div>
             );
 
-            return(
+            return (
                 UI_STRUCTURE(<p>It's your turn! HIT or STAND</p>, playerTurnBody)
             );
         }
@@ -302,11 +293,14 @@ const Game = () => {
                         <h4 className="alert-heading">Congratulations! You've Won </h4>
                         <p>You've won!</p>
                     </div>
-                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
                 </div>
             );
         }
-        
+
         if (state === 3) {
             outcomeJSX = (
                 <div className="alert alert-danger d-flex align-items-center justify-content-between" role="alert">
@@ -314,12 +308,30 @@ const Game = () => {
                         <h4 className="alert-heading">Oh no! You've lost...</h4>
                         <p>Better luck next time!</p>
                     </div>
-                    <a className="btn btn-secondary" type="button" href="/">Leave the Table</a>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
                 </div>
             );
         }
-        
-        if(state === 1 || state === 2 || state === 3 || state === 4){
+
+        if (state === 4) {
+            outcomeJSX = (
+                <div className="alert alert-info d-flex align-items-center justify-content-between" role="alert">
+                    <div>
+                        <h4 className="alert-heading">Tie!</h4>
+                        <p>You've tied the dealer! Neither of you lost or win any money...</p>
+                    </div>
+                    <button className="btn btn-secondary" type="button" onClick={() => {
+                        preformAction("leave", handleStand);
+                    }}>Leave the Table</button>
+
+                </div>
+            );
+        }
+
+        if (state === 1 || state === 2 || state === 3 || state === 4) {
             const dealerTurnBody = (
                 <div class="row">
 
@@ -336,7 +348,9 @@ const Game = () => {
 
                         {/* GAME LOG ENTRIES GO INTO HERE */}
                         <div className="ms-2 me-2">
-                            {gameLog}
+                            <div style={{ maxHeight: '1000px', overflowY: 'auto' }}> {/* `maxHeight` can be adjusted as needed */}
+                                {gameLog}
+                            </div>
                         </div>
 
                     </div>
@@ -358,7 +372,7 @@ const Game = () => {
 
                             <br />
                             {outcomeJSX}
-                             <br />
+                            <br />
 
                             {/* Player's Hand Heading Element */}
 
@@ -380,20 +394,11 @@ const Game = () => {
                 </div>
             );
 
-            return(
+            return (
                 UI_STRUCTURE(<p>It's the Dealer's turn...</p>, dealerTurnBody)
             );
-
         }
-
-
-
     }
-
-
-
-
-
 
     //* ========== ========== ========== ========== ==========
     //* >> React UseEffects
@@ -412,7 +417,7 @@ const Game = () => {
 
     }, []); //! ON MOUNT
 
-    return(RENDER_GAME_UI(gameStatus))
+    return (RENDER_GAME_UI(gameStatus))
 }
 
 export default Game

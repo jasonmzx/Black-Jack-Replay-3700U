@@ -31,14 +31,37 @@ export function activeGameLoggingAlgorithm(state, hands) {
         if (hand.shown) {
             const playerName = hand.holder === 0 ? "Player" : "Dealer"
 
-            const cardDescription = `${getCardDescription(hand)}`
-            const visibleCards = getVisibleCards(hands, hand.holder).map(card => getCardDescription(card)).join(", ")
-            const totalValue = calculateTotalValue(hands, hand.holder)
+            const cardDescription = getCardDescription(hand)
+            const visibleCards = getVisibleCards(hands, hand.holder, idx).map(card => getCardDescription(card)).join(", ")
+            const totalValue = calculateTotalValue(hands, hand.holder, idx)
+
+            let cardValue
+            if (hand.card_value === null && (totalValue - 11) <= 10) {
+                cardValue = "11"
+            } else if (hand.card_value === null && (totalValue - 11) > 10) {
+                cardValue = "1"
+            } else {
+                cardValue = hand.card_value
+            }
 
             lg.push(
-                `${playerName} drew ${cardDescription}`
-                /* | ${playerName} cards: ${visibleCards} | Total value: ${totalValue} */
+                <div>
+                    <span style={{ display: 'block' }}>
+                        {`${playerName} drew ${cardDescription} (Value: ${cardValue})`}
+                    </span>
+                    <br />
+                    <span style={{ display: 'block' }}>
+                        {`${playerName} cards: ${visibleCards}`}
+                    </span>
+                    <br />
+                    <span>
+                        <strong>{`${playerName} hand value: ${totalValue}`}</strong>
+                    </span>
+                    <br />
+                </div>
             )
+        } else {
+            lg.push(`Dealer drew an unknown card`)
         }
     }
 
@@ -46,16 +69,53 @@ export function activeGameLoggingAlgorithm(state, hands) {
 }
 
 function getCardDescription(card) {
-    return card.card_name ? `${card.card_name} of ${card.symbol_name} (Value: ${card.card_value})` : `${card.card_value} of ${card.symbol_name} (Value: ${card.card_value})`
+    return card.card_name ? `${card.card_name} of ${card.symbol_name}` : `${card.card_value} of ${card.symbol_name}`
 }
 
-function calculateTotalValue(hands, holder) {
-    const playerCards = getVisibleCards(hands, holder)
-    return playerCards.reduce((total, card) => total + card.card_value, 0)
+function calculateTotalValue(hands, holder, idx) {
+    const playerCards = getVisibleCards(hands, holder, idx).slice(0, idx + 1)
+    let total = 0
+    let hasAce = false
+
+    for(const card of playerCards) {
+        if (card.card_value === null) {
+            total += 11
+            hasAce = true
+        }
+
+        total += card.card_value
+    }
+
+    if (total > 21 && hasAce) {
+        total -= 10
+    }
+
+    return total
 }
 
-function getVisibleCards(hands, holder) {
-    return hands.filter((hand) => hand.holder === holder && hand.shown)
+function getVisibleCards(hands, holder, idx) {
+    return hands.slice(0, idx + 1).filter((hand) => hand.holder === holder && hand.shown)
+}
+
+export function formatDate(inputDate) {
+    const months = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+
+    const dateObj = new Date(inputDate);
+    
+    const month = months[dateObj.getMonth()];
+    const day = dateObj.getDate();
+    const year = dateObj.getFullYear();
+    const hours = dateObj.getHours();
+    const minutes = dateObj.getMinutes();
+
+    const suffix = day > 10 && day < 20 ? "th" : ["th", "st", "nd", "rd", "th"][day % 10];
+
+    const formattedDate = `${month} ${day}${suffix} ${year} at ${hours}:${minutes}`;
+
+    return formattedDate;
 }
 
 // --------------- SVG ICONS FOR FRONTEND -------------------

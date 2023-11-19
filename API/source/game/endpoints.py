@@ -3,12 +3,13 @@ import random
 import uuid
 
 from database import connection_pool
-from .models import InitGame, Credential
+from .models import InitGame, Credential, ReplayGame
 
 # Database Utility 
 from database.db_utility import DB_get_user_by_cookie
 from database.db_utility import DB_GAME_pull_card_off_deck_into_active_hand, DB_GAME_Is_player_in_game
 from database.db_utility import DB_GAME_get_active_hands, DB_GAME_active_game_switch_turns, DB_GAME_mirror_replay_hands, DB_GAME_perform_hit
+from database.db_utility import DB_GAME_delete_active_game, DB_GAME_get_replay_hands
 
 # Game Utility (Functionality abstractions for "main game" Application)
 from .game_utility import GAME_UTIL_calculate_hand
@@ -23,7 +24,6 @@ def init_game(req: InitGame):
     try:
         print(req.cookie)
         user_record = DB_get_user_by_cookie(req.cookie)
-        print(user_record)
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
@@ -147,7 +147,7 @@ def active_hands(req: Credential):
     hands = DB_GAME_get_active_hands(user_record["user_id"], True) #Obfuscated Hands, as it's being sent to player
 
     if hands is None:
-         raise HTTPException(status_code=404, detail=str("Game not found...")) #Internal serv err
+         raise HTTPException(status_code=404, detail=str("Game not found..."))
 
     return hands
 
@@ -163,10 +163,16 @@ def player_call(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
+    #* Assertion for Active Game, Preform Dealer Turn Switch & Mirroring of hands for Replay 
+    USER_ID = user_record["user_id"]
+    in_game = DB_GAME_Is_player_in_game(USER_ID)
+
+    if in_game is not False:
+
+        DB_GAME_active_game_switch_turns(USER_ID)
+        DB_GAME_mirror_replay_hands(in_game["game_uuid"])
+
     print("/stand, User ID: "+str(user_record["user_id"]))
-
-    DB_GAME_active_game_switch_turns(user_record["user_id"])
-
     return
     
 
@@ -180,7 +186,7 @@ def player_hit(req: Credential):
     except Exception as err:
         raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
 
-    # 
+    #* Assertion for Active Game, Preform Player hit & Mirroring of hands for Replay 
     USER_ID = user_record["user_id"]
     in_game = DB_GAME_Is_player_in_game(USER_ID)
 
@@ -190,10 +196,24 @@ def player_hit(req: Credential):
         DB_GAME_mirror_replay_hands(in_game["game_uuid"])
 
     print("/call, User ID: "+str(USER_ID))
-
-    # Hit Action | Pulled card
     return
     
+
+@router.post("/leave")
+def player_leave_game(req: Credential):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    deletion_status = DB_GAME_delete_active_game(user_record["user_id"])
+
+    if deletion_status is False:
+        raise HTTPException(status_code=404, detail="Game can't be deleted...")
+    return
 
 @router.post("/whoami")
 def whoami(req: Credential):
@@ -207,5 +227,52 @@ def whoami(req: Credential):
 
     return user_record
 
+#========== ========== ========== ========== ==========
+#?----------- REPLAY GAME Endpoints
+# ========== ========== ========== ========== ==========
         
+@router.post("/replay/hands")
+def replay_hands(req: ReplayGame):
+
+    user_record = None
+
+    try:
+        user_record = DB_get_user_by_cookie(req.cookie)
+    except Exception as err:
+        raise HTTPException(status_code=404, detail="Active Cookie Session not found...")
+
+    print(req.uuid)
+    hands = DB_GAME_get_replay_hands(req.uuid, True)
+
+    return hands
+
+@router.post("/replay/games")
+def get_replay_games(req: Credential):
+    try:
+        # Assuming DB_get_user_by_cookie is a function to get the user based on the cookie
+        user_record = DB_get_user_by_cookie(req.cookie)
+        if user_record is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        user_id = user_record['user_id']
+
+        # Establish database connection and fetch data
+        with connection_pool.get_conn() as conn, conn.cursor(dictionary=True) as cursor:
+            # Prepare the SQL query to fetch replay games for the given user
+            query = """
+                SELECT *
+                FROM replay_games rg
+                WHERE rg.player = %s
+            """
+            cursor.execute(query, (user_id,))
+
+            # Fetch all records
+            replay_games = cursor.fetchall()
+
+        return replay_games
+
+    except Exception as err:
+        print(f"Error: {err}")
+        raise HTTPException(status_code=500, detail="Internal Server Error")
+
 

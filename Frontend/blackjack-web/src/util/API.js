@@ -84,6 +84,44 @@ export async function API_get_game(cookie, callback) {
   return;
 }
 
+export async function API_get_replay(cookie, uuid, callback) {
+
+  const RESPONSE = await fetch(ENDPOINT + 'game/replay/hands', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+          "cookie": cookie,
+          "uuid" : uuid
+        })
+  });
+
+  let ResponseJSON = await RESPONSE.json();
+  let ResponseStatus = RESPONSE.status;
+
+  callback(ResponseJSON, ResponseStatus);
+  return;
+}
+
+export async function API_get_replay_game(cookie, callback) {
+
+  const RESPONSE = await fetch(ENDPOINT + 'game/replay/games', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+          "cookie": cookie
+        })
+  });
+
+  let ResponseJSON = await RESPONSE.json();
+  let ResponseStatus = RESPONSE.status;
+
+  callback(ResponseJSON, ResponseStatus);
+  return;
+}
+
+
+//! --------- Game Action Request ----------------
+
 export async function API_action(cookie, action, callback) {
 
   const RESPONSE = await fetch(ENDPOINT + 'game/'+action, {

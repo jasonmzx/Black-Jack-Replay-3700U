@@ -58,6 +58,16 @@ const GameCreation = () => {
     setMoneyInt(payload);
   }
 
+  const [wager, setWager] = React.useState(0);
+
+  const handleSetWager = (amount) => {
+    setWager(amount);
+
+    if (wagerInput.current) {
+      wagerInput.current.value = amount;
+    }
+  };
+
     //* ========== ========== ========== ========== ==========
   //* >> React UseEffects
   //* ========== ========== ========== ========== ==========
@@ -86,10 +96,26 @@ const GameCreation = () => {
                             <label class="form-label">Amount: </label>
                             <input class="form-control item" type="number" ref={wagerInput}/> 
 
-                            <button class="btn btn-primary" 
-                            onClick={() => {
-                                InitializeGame();
-                            }}>Let's Play</button>
+                            <div style={{ marginTop: '10px' }}>
+                              <button class="btn btn-secondary" onClick={() => handleSetWager(50)}>Wager $50</button>
+                              {' '}
+                              <button class="btn btn-secondary" onClick={() => handleSetWager(100)}>Wager $100</button>
+                              {' '}
+                              <button class="btn btn-secondary" onClick={() => handleSetWager(200)}>Wager $200</button>
+                              {' '}
+                              <button class="btn btn-secondary" onClick={() => handleSetWager(500)}>Wager $500</button>
+                              {' '}
+                              <button class="btn btn-secondary" onClick={() => handleSetWager(parseInt(moneyInt))}>All In</button>
+
+                              <br />
+
+                              <div style={{ marginTop: '10px' }}>
+                                <button class="btn btn-primary" 
+                                  onClick={() => {
+                                    InitializeGame();
+                                  }}>Let's Play</button>
+                              </div>
+                            </div>
                         </div>
 
                         {errorDisplay}
