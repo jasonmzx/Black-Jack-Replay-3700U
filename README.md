@@ -1,21 +1,23 @@
 
-## Black Jack | Cards Game | Play & Replay System
+## Black Jack | Cards Game | Play & Replay (Review) System
 
 **by:** 
-Ahmed Darwish (100754743)
-Armaghan Nasir (100820948)
-Tahmid Chowdhury (100822671)
-Jason Manarroo (100825106)
+Ahmed Darwish (100754743) <br><br/>
+Armaghan Nasir (100820948) <br><br/>
+Tahmid Chowdhury (100822671) <br><br/>
+Jason Manarroo (100825106) <br><br/>
 
 ---
 
-TODO: general docs
+### Video of some games on the site being played !
 
----
+[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/i_CnzXaYXig/0.jpg)](https://youtu.be/i_CnzXaYXig "Playing some games")
+^^ Click Image, or *Raw Link:* https://youtu.be/i_CnzXaYXig 
 
-**References:**
+### Video reviewing some past games !
 
-TODO:
+[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/wY-Z2K8M_Ns/0.jpg)](https://youtu.be/wY-Z2K8M_Ns "Playing some games")
+^^ Click Image, or *Raw Link:* https://youtu.be/wY-Z2K8M_Ns
 
 ---
 
@@ -27,13 +29,15 @@ TODO:
 
 ---
 
-### *Database Schema Setup:*
+### *Database & Schema Setup:*
 
 `CREATE DATABASE blackjack_replay;`
 
+Now go to **scripts.md** document, within the same directory as this file, and run *Script #1* to initialize the Table Schemas, and run *Script #2* to load in the `card_registry` table with 52 cards, for cloning and shuffling upon `active_games` initializations.
+
 ---
 
-### *Python FastAPI Setup*
+#### *Python FastAPI Setup for Conda Distribution*
 
 Anaconda Install, which is a Python Distribution and Package Management Tool *(Easier for those on Windows IMO)*
 
@@ -49,7 +53,7 @@ Anaconda Install, which is a Python Distribution and Package Management Tool *(E
 
 ---
 
-PIP *(Python Original Distribution)*:
+#### PIP *(Python Original Distribution)*:
 
 1. Make sure you are in `./API` directory
 
@@ -70,14 +74,26 @@ LINUX ONLY: `pip list | grep -E "uvicorn|fastapi|mysql-connector-python"`
 
 ---
 
-Running API
+*Running API, this will require:*
+1. Start MySQL Docker Container `sudo docker start blackjack-db`
+2. Re-activate your virtual environment, then going to `../API/source` where `main.py` resides, then run: `uvicorn main:app --reload`
 
-`uvicorn main:app --reload`
+**On Linux:** you're able to run the shell script `run_api.sh`
+in the main Blackjack3700U Directory, this will activate venv, start up the docker, and run api, just run the it with BASH!
 
 ---
+### Frontend Docs
 
-## Frontend Docs
-
+Create-React-App command
 ```
 sudo npm install -g create-react-app
+```
+---
+##### Installation, once cloned our repo:
+
+*Setting up, and running our frontend in Development Mode*
+```
+cd Frontend/blackjack-web/src
+npm install
+npm run start
 ```
