@@ -1,7 +1,7 @@
 
 ## Black Jack | Cards Game | Play & Replay (Review) System
 
-**by:** *Group 11*
+**by:** *Group 11* <br><br/>
 Ahmed Darwish (100754743) <br><br/>
 Armaghan Nasir (100820948) <br><br/>
 Tahmid Chowdhury (100822671) <br><br/>
