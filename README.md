@@ -1,7 +1,7 @@
 
 ## Black Jack | Cards Game | Play & Replay (Review) System
 
-**by:** 
+**by:** *Group 11*
 Ahmed Darwish (100754743) <br><br/>
 Armaghan Nasir (100820948) <br><br/>
 Tahmid Chowdhury (100822671) <br><br/>
@@ -11,12 +11,12 @@ Jason Manarroo (100825106) <br><br/>
 
 ### Video of some games on the site being played !
 
-[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/i_CnzXaYXig/0.jpg)](https://youtu.be/i_CnzXaYXig "Playing some games")
+[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/i_CnzXaYXig/0.jpg)](https://youtu.be/i_CnzXaYXig "Playing some games") <br><br/>
 ^^ Click Image, or *Raw Link:* https://youtu.be/i_CnzXaYXig 
 
 ### Video reviewing some past games !
 
-[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/wY-Z2K8M_Ns/0.jpg)](https://youtu.be/wY-Z2K8M_Ns "Playing some games")
+[![Playing some games | BLACKJACK 3700U](https://img.youtube.com/vi/wY-Z2K8M_Ns/0.jpg)](https://youtu.be/wY-Z2K8M_Ns "Playing some games") <br><br/>
 ^^ Click Image, or *Raw Link:* https://youtu.be/wY-Z2K8M_Ns
 
 ---
